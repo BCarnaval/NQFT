@@ -4,14 +4,14 @@
 Python Qutip.
 """
 
-from qutip import (basis, create, destroy, num, tensor, qeye)
+from qutip import (basis, create, destroy, num, tensor, identity)
 
 
 vaccum = basis(2)
 creation = create(2)
 anihilation = destroy(2)
 number = num(2)
-I = qeye(2)
+I = identity(2)
 
 def get_ket(state: int):
     """Gives array-like representation of given state using 
@@ -61,5 +61,6 @@ def get_H(model: str, U: int, **kwargs):
 
 
 if __name__ == "__main__":
+    print(get_H(model="Hubbard", U=1, t=1))
     print(get_H(model="AIM", U=1, mu=1, theta=1, e=1))
 
