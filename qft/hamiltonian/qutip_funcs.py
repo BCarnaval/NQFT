@@ -5,7 +5,6 @@ Python Qutip.
 """
 
 from qutip import (basis, create, destroy, num, tensor, identity)
-from qutip.qobj import Qobj
 
 SITES = 2
 vaccum = basis(2)
@@ -78,7 +77,7 @@ def get_H(model: str, U: int, **kwargs):
 
         H = U*H1 - mu*H2 - theta*H3 + (e - mu)*H4
 
-    return H
+    return H1
 
 def get_E(model: str, states: list, U: int, **kwargs):
     """Outputs a matrix element (energy) from the hamiltonian using 
@@ -92,3 +91,4 @@ def get_E(model: str, states: list, U: int, **kwargs):
 
 if __name__ == "__main__":
     print(get_H(model="Hubbard", U=1, t=1))
+
