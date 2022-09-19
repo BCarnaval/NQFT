@@ -46,7 +46,7 @@ def get_H(model: str, U: int, **kwargs):
             ops_1 = [I for i in range(SITES*2)]
 
             ops_1[idx] = number
-            ops_1[SITES - 1 + idx] = number
+            ops_1[SITES + idx] = number
 
             sites.remove(idx)
             H1 += tensor(*ops_1)
@@ -58,8 +58,8 @@ def get_H(model: str, U: int, **kwargs):
                 ops_2_up[idx] = creation
                 ops_2_up[ext] = anihilation
 
-                ops_2_down[SITES - 1 + idx] = creation
-                ops_2_down[SITES - 1 + ext] = anihilation
+                ops_2_down[SITES + idx] = creation
+                ops_2_down[SITES + ext] = anihilation
 
                 H2 += tensor(*ops_2_up) + tensor(*ops_2_down)
 
