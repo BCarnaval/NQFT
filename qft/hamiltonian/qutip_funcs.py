@@ -145,6 +145,7 @@ def get_E(model: str, states: list, U: int, **kwargs):
 
     return E
 
+
 if __name__ == "__main__":
     print(get_H(model="Hubbard", U=1, t=1))
 
