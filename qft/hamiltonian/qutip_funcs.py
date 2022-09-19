@@ -30,6 +30,19 @@ anihilation = destroy(2)
 number = num(2)
 I = identity(2)
 
+
+def scalar(m: Qobj, n=None):
+  """Computes scalar product for Fock space vectors.
+
+  scalar(m, n) = < m | n >.
+  """
+  if n:
+    val = m.dag()*n
+  else:
+    val = m.dag()*m
+  return val.tr()
+
+
 def get_state(state: int, type="ket"):
     """Gives array-like representation of given state using 
     Qutip 'tensor' function.
@@ -61,6 +74,7 @@ def get_state(state: int, type="ket"):
     elif type == "ket":
         return tensor(*vec_state)
 
+
 def get_H(model: str, U: int, **kwargs):
     """Outputs the hamiltonian of specified many-body model.
 
@@ -76,7 +90,7 @@ def get_H(model: str, U: int, **kwargs):
 
     Returns
     -------
-    H: qutip.Qobj, shape (4^SITES), 4^SITES)
+    H: qutip.Qobj, shape (4^SITES, 4^SITES)
         Tensor object representing hamitonian for given 'model'.
     """
     if model == "Hubbard":
@@ -120,7 +134,8 @@ def get_H(model: str, U: int, **kwargs):
 
     return H
 
-def get_E(model: str, states: list, U: int, **kwargs):
+
+def get_E(H: Qobj, states: list):
     """Outputs a matrix element (energy) from the hamiltonian using 
     given kets on which perform projection.
 
@@ -130,44 +145,42 @@ def get_E(model: str, states: list, U: int, **kwargs):
         Fermions network configuration.
     states: array-like, shape (2, 1), default=None
         Vectors used to process scalar product on H.
-    U: int, default=None
-        Module of interaction between fermions.
-    **kwargs:
-        t: int, default=None
-            Probability amplitude for fermions to jump.
+        (ex: states=[bra, ket] as integers to convert from binairy)
+
     Returns
     -------
     E: qutip.Qobj.bra, shape (1, 1)
         Representation of projected vectors on H (energy).
     """
     bra, ket = get_state(states[0], type="bra"), get_state(states[1])
-    H = get_H(model=model, U=U, **kwargs)
     E = bra*H*ket
 
-    return E
-  
-def lanczos(H: Qobj):
+    return E.tr()
+
+
+def lanczos(H: Qobj, iters: int):
   """Docs
   """
   dim = H.shape[0]
   state = randint(dim - 1)
-  phi_n = basis(dim, state)
+  phi_n = get_state(state=state)
 
-  # Compute new vector
-  for iter in range(dim):
+  for iter in range(iters):
     if iter == 0:
-      a_n = phi_n.dag()*H*phi_n / phi_n.dag()*phi_n
+      a_n = H.matrix_element(phi_n.dag(), phi_n) / scalar(phi_n)
       phi_n_plus = H*phi_n - a_n*phi_n
+
     else:
-      a_n = phi_n_plus.dag()*H*phi_n_plus / phi_n_plus.dag()*phi_n_plus
-      b_n = phi_n_plus.dag()*phi_n_plus / phi_n.dag()*phi_n
+      a_n = H.matrix_element(phi_n_plus.dag(), phi_n_plus) / scalar(phi_n_plus)
+      b_n = I.matrix_element(phi_n_plus.dag(), phi_n_plus) / scalar(phi_n)
       phi_n_plus = H*phi_n_plus - a_n*phi_n_plus - b_n**2*phi_n
       phi_n = phi_n_plus
 
-  return phi_n_plus
+  return phi_n_plus.unit()
 
 
 if __name__ == "__main__":
     H = get_H(model="Hubbard", U=1, t=1)
-    phi = lanczos(H)
-    print(phi)
+    phi_n = lanczos(H=H, iters=10)
+    print(phi_n)
+
