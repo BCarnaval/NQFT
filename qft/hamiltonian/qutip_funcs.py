@@ -1,7 +1,22 @@
 #!/usr/bin/env python3
 
 """Module de test des fonctionnalités de la librairie
-Python Qutip. 
+Python Qutip. Les états ici discutés possèdent la forme
+
+ --------------------------------------- c^dagger_1
+|
+|   ------------------------------------ c^dagger_2
+|  |                                        .
+|  |                                        .
+|  |                                        .
+|  |                                       
+|  |         --------------------------- c_1
+|  |        |
+|  |        |   ------------------------ c_2
+|  |        |  |                            .
+|  |        |  |                            .
+|  |        |  |                            .
+(     ...        ...)ket{0}
 """
 
 from qutip import (basis, create, destroy, num, tensor, identity)
@@ -27,7 +42,7 @@ def get_state(state: int, type="ket"):
 
     Returns
     -------
-    bra, ket: qutip.Qobj, shape (2^(SITES*2), 1)
+    bra, ket: qutip.Qobj, shape (4^SITES, 1)
         Full vector representation.
     """
     binairy = format(state, 'b').zfill(SITES*2)
@@ -60,7 +75,7 @@ def get_H(model: str, U: int, **kwargs):
 
     Returns
     -------
-    H: qutip.Qobj, shape (2^(SITES*2), 2^(SITES*2))
+    H: qutip.Qobj, shape (4^SITES), 4^SITES)
         Tensor object representing hamitonian for given 'model'.
     """
     if model == "Hubbard":
