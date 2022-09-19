@@ -7,7 +7,7 @@ Python Qutip.
 from qutip import (basis, create, destroy, num, tensor, identity)
 
 
-SITES = 2
+SITES = 4
 vaccum = basis(2)
 creation = create(2)
 anihilation = destroy(2)
@@ -18,7 +18,6 @@ def get_state(state: int, type="ket"):
     """Gives array-like representation of given state using 
     Qutip 'tensor' function. 
     """
-    binairy = format(state, 'b').zfill(4)
     binairy = format(state, 'b').zfill(SITES*2)
     ket = [*binairy]
 
