@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+# /usr/bin/env python3
 
 """Module de test des fonctionnalités de la librairie
 Python Qutip. Les états ici discutés possèdent la forme
@@ -19,7 +19,8 @@ Python Qutip. Les états ici discutés possèdent la forme
 (      ...        ...)ket{0}
 """
 
-from qutip import (basis, create, destroy, num, tensor, identity)
+from numpy.random import randint
+from qutip import (Qobj, basis, create, destroy, num, tensor, identity)
 
 
 SITES = 2
@@ -145,12 +146,28 @@ def get_E(model: str, states: list, U: int, **kwargs):
 
     return E
   
-def lanczos():
+def lanczos(H: Qobj):
   """Docs
   """
-  return
+  dim = H.shape[0]
+  state = randint(dim - 1)
+  phi_n = basis(dim, state)
+
+  # Compute new vector
+  for iter in range(dim):
+    if iter == 0:
+      a_n = phi_n.dag()*H*phi_n / phi_n.dag()*phi_n
+      phi_n_plus = H*phi_n - a_n*phi_n
+    else:
+      a_n = phi_n_plus.dag()*H*phi_n_plus / phi_n_plus.dag()*phi_n_plus
+      b_n = phi_n_plus.dag()*phi_n_plus / phi_n.dag()*phi_n
+      phi_n_plus = H*phi_n_plus - a_n*phi_n_plus - b_n**2*phi_n
+      phi_n = phi_n_plus
+
+  return phi_n_plus
 
 
 if __name__ == "__main__":
-    print(get_H(model="Hubbard", U=1, t=1))
-
+    H = get_H(model="Hubbard", U=1, t=1)
+    phi = lanczos(H)
+    print(phi)
