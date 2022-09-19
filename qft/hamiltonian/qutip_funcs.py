@@ -16,7 +16,19 @@ I = identity(2)
 
 def get_state(state: int, type="ket"):
     """Gives array-like representation of given state using 
-    Qutip 'tensor' function. 
+    Qutip 'tensor' function.
+
+    Parameters
+    ----------
+    state: int, default=None
+        Integer representing state number in Fock space.
+    type: str, default='ket'
+        Type of vector outputed (bra, ket)
+
+    Returns
+    -------
+    bra, ket: qutip.Qobj, shape (2^(SITES*2), 1)
+        Full vector representation.
     """
     binairy = format(state, 'b').zfill(SITES*2)
     ket = [*binairy]
@@ -35,6 +47,18 @@ def get_state(state: int, type="ket"):
 
 def get_H(model: str, U: int, **kwargs):
     """Outputs the hamiltonian of specified many-body model.
+
+    Parameters
+    ----------
+    model: str, default=None
+        Fermions network configuration.
+    U: int, default=None
+        Module of interaction between fermions.
+
+    Returns
+    -------
+    H: qutip.Qobj, shape (2^(SITES*2), 2^(SITES*2))
+        Tensor object representing hamitonian for given 'model'.
     """
     if model == "Hubbard":
         H1, H2 = 0, 0
@@ -80,11 +104,26 @@ def get_H(model: str, U: int, **kwargs):
 def get_E(model: str, states: list, U: int, **kwargs):
     """Outputs a matrix element (energy) from the hamiltonian using 
     given kets on which perform projection.
+
+    Parameters
+    ----------
+    model: str, default=None
+        Fermions network configuration.
+    states: array-like, shape (2, 1), default=None
+        Vectors used to process scalar product on H.
+    U: int, default=None
+        Module of interaction between fermions.
+
+    Returns
+    -------
+    E: qutip.Qobj.bra, shape (1, 1)
+        Representation of projected vectors on H (energy).
     """
     bra, ket = get_state(states[0], type="bra"), get_state(states[1])
     H = get_H(model=model, U=U, **kwargs)
+    E = bra*H*ket
 
-    return bra*H*ket
+    return E
 
 if __name__ == "__main__":
     print(get_H(model="Hubbard", U=1, t=1))
