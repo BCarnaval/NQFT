@@ -6,13 +6,14 @@ Python Qutip.
 
 from qutip import (basis, create, destroy, num, tensor, identity)
 
+
 vaccum = basis(2)
 creation = create(2)
 anihilation = destroy(2)
 number = num(2)
 I = identity(2)
 
-def get_state(state: int, type="ket"):
+def get_ket(state: int, type="ket"):
     """Gives array-like representation of given state using 
     Qutip 'tensor' function. 
     """
@@ -64,13 +65,14 @@ def get_E(model: str, states: list, U: int, **kwargs):
     """Outputs a matrix element (energy) from the hamiltonian using 
     given kets on which perform projection.
     """
-    bra, ket = get_state(states[0], type="bra"), get_state(states[1])
+    bra, ket = get_ket(states[0], type="bra"), get_ket(states[1])
     H = get_H(model=model, U=U, **kwargs)
 
     return bra*H*ket
 
 
 if __name__ == "__main__":
-    print(get_H(model="Hubbard", U=1, t=1))
+    # print(get_H(model="Hubbard", U=1, t=1))
     # print(get_H(model="AIM", U=1, mu=1, theta=1, e=1))
-    # print(get_E(model="AIM", states=[15, 15], U=4, mu=10, theta=1, e=1))
+    print(get_E(model="Hubbard", states=[15, 14], U=4, t=1))
+
