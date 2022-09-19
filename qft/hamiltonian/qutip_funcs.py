@@ -144,11 +144,11 @@ def get_E(model: str, states: list, U: int, **kwargs):
     E = bra*H*ket
 
     return E
-
+  
 def lanczos():
-    """Docs
-    """
-    return
+  """Docs
+  """
+  return
 
 
 if __name__ == "__main__":
