@@ -3,20 +3,20 @@
 """Module de test des fonctionnalités de la librairie
 Python Qutip. Les états ici discutés possèdent la forme
 
- --------------------------------------- c^dagger_1
-|
-|   ------------------------------------ c^dagger_2
-|  |                                        .
-|  |                                        .
-|  |                                        .
-|  |                                       
-|  |         --------------------------- c_1
-|  |        |
-|  |        |   ------------------------ c_2
-|  |        |  |                            .
-|  |        |  |                            .
-|  |        |  |                            .
-(     ...        ...)ket{0}
+  --------------------------------------- (c^dagger_1)^n_1 up
+ |
+ |   ------------------------------------ (c^dagger_2)^n_2 up
+ |  |                                             .
+ |  |                                             .
+ |  |                                             .
+ |  |                                       
+ |  |         --------------------------- (c^dagger_1)^n_1 down
+ |  |        |
+ |  |        |   ------------------------ (c^dagger_2)^n_2 down
+ |  |        |  |                                 .
+ |  |        |  |                                 .
+ |  |        |  |                                 .
+(      ...        ...)ket{0}
 """
 
 from qutip import (basis, create, destroy, num, tensor, identity)
