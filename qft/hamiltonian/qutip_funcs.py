@@ -77,7 +77,7 @@ def get_H(model: str, U: int, **kwargs):
 
         H = U*H1 - mu*H2 - theta*H3 + (e - mu)*H4
 
-    return H1
+    return H2
 
 def get_E(model: str, states: list, U: int, **kwargs):
     """Outputs a matrix element (energy) from the hamiltonian using 
