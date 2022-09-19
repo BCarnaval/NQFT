@@ -7,7 +7,7 @@ Python Qutip.
 from qutip import (basis, create, destroy, num, tensor, identity)
 
 
-SITES = 4
+SITES = 2
 vaccum = basis(2)
 creation = create(2)
 anihilation = destroy(2)
@@ -54,6 +54,9 @@ def get_H(model: str, U: int, **kwargs):
         Fermions network configuration.
     U: int, default=None
         Module of interaction between fermions.
+    **kwargs:
+        t: int, default=None
+            Probability amplitude for fermions to jump.
 
     Returns
     -------
@@ -113,7 +116,9 @@ def get_E(model: str, states: list, U: int, **kwargs):
         Vectors used to process scalar product on H.
     U: int, default=None
         Module of interaction between fermions.
-
+    **kwargs:
+        t: int, default=None
+            Probability amplitude for fermions to jump.
     Returns
     -------
     E: qutip.Qobj.bra, shape (1, 1)
