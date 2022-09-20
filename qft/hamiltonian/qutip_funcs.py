@@ -19,6 +19,7 @@ Python Qutip. Les états ici discutés possèdent la forme
 (      ...        ...)ket{0}
 """
 
+import numpy as np
 from numpy.random import randint
 from qutip import (Qobj, basis, create, destroy, num, tensor, identity)
 
@@ -32,16 +33,20 @@ I = identity(2)
 
 
 def scalar(m: Qobj, n=None):
-  """Computes scalar product for Fock space vectors.
+    """Computes scalar product for Fock space vectors.
 
-  scalar(m, n) = < m | n >.
-  """
-  if n:
-    val = m.dag()*n
-  else:
-    val = m.dag()*m
-  return val.tr()
+    scalar(m, n) = < m | n >.
+    """
+    if n:
+        val = m.dag()*n
+    else:
+        val = m.dag()*m
+    return val.tr()
 
+def delta(j: int, k: int):
+    """Kronecker delta function.
+    """
+    return 1.0 if j == k else 0.0
 
 def get_state(state: int, type="ket"):
     """Gives array-like representation of given state using 
@@ -69,10 +74,8 @@ def get_state(state: int, type="ket"):
         else:
             vec_state.append(vaccum)
 
-    if type == "bra":
-        return tensor(*vec_state).dag()
-    elif type == "ket":
-        return tensor(*vec_state)
+    vec = tensor(*vec_state)
+    return vec.dag() if type == "bra" else vec
 
 
 def get_H(model: str, U: int, **kwargs):
@@ -127,7 +130,7 @@ def get_H(model: str, U: int, **kwargs):
         H1 = tensor(I, number, I, number)
         H2 = tensor(I, number, I, I) + tensor(I, I, I, number)
         H3 = tensor(creation, anihilation, I, I) + tensor(anihilation,
-                creation, I, I) + tensor(I, I, creation, anihilation) + tensor(I, I, anihilation, creation)
+                  creation, I, I) + tensor(I, I, creation, anihilation) + tensor(I, I, anihilation, creation)
         H4 = tensor(number, I, I, I) + tensor(I, I, number, I)
 
         H = U*H1 - mu*H2 - theta*H3 + (e - mu)*H4
@@ -158,29 +161,57 @@ def get_E(H: Qobj, states: list):
     return E.tr()
 
 
-def lanczos(H: Qobj, iters: int):
-  """Docs
-  """
-  dim = H.shape[0]
-  state = randint(dim - 1)
-  phi_n = get_state(state=state)
-
-  for iter in range(iters):
-    if iter == 0:
-      a_n = H.matrix_element(phi_n.dag(), phi_n) / scalar(phi_n)
-      phi_n_plus = H*phi_n - a_n*phi_n
-
+def lanczos(H: Qobj, iters: int, init_state=None):
+    """Docs
+    """
+    if not init_state:
+        dim = H.shape[0]
+        state = randint(dim - 1)
+        phi_n = get_state(state=state)
     else:
-      a_n = H.matrix_element(phi_n_plus.dag(), phi_n_plus) / scalar(phi_n_plus)
-      b_n = I.matrix_element(phi_n_plus.dag(), phi_n_plus) / scalar(phi_n)
-      phi_n_plus = H*phi_n_plus - a_n*phi_n_plus - b_n**2*phi_n
-      phi_n = phi_n_plus
+        init = init_state
 
-  return phi_n_plus.unit()
+    H_n = np.zeros((iters, iters), dtype=np.complex64)
+    for iter in range(iters):
+        if iter == 0:
+            a_n = H.matrix_element(init.dag(), init) / scalar(init)
+            b_n = 0
+
+            phi_n_plus = H*init - a_n*init - b_n**2*init
+            phi_n_minus = init
+            phi_n = phi_n_plus
+        else:            
+            a_n = H.matrix_element(phi_n.dag(), phi_n) / scalar(phi_n)
+            b_n = np.sqrt(scalar(phi_n) / scalar(phi_n_minus))
+
+            phi_n_plus = H*phi_n - a_n*phi_n - b_n**2*phi_n_minus
+            phi_n_minus = phi_n
+            phi_n = phi_n_plus
+            
+        for lgn in range(iters):
+            H_n[lgn, iter] = b_n*delta(lgn, iter + 1) + a_n*delta(lgn, iter) + \
+                    b_n*delta(lgn, iter - 1)
+
+    return Qobj(phi_n_minus), Qobj(H_n)
+
+U, t = 1, 1
+H_test = Qobj(np.array([
+    [U, -t, -t, 0],
+    [-t, 0, 0, -t],
+    [-t, 0, 0, -t],
+    [0, -t, -t, U]
+    ]))
+
+phi_test = Qobj(np.array([
+    [0],
+    [1],
+    [0],
+    [0]
+    ]))
 
 
 if __name__ == "__main__":
     H = get_H(model="Hubbard", U=1, t=1)
-    phi_n = lanczos(H=H, iters=10)
-    print(phi_n)
+    H_n = lanczos(H=H_test, iters=2, init_state=phi_test)
+    print(H_n)
 
