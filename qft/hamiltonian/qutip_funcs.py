@@ -161,38 +161,48 @@ def get_E(H: Qobj, states: list):
     return E.tr()
 
 
-def lanczos(H: Qobj, iters: int, init_state=None):
+def lanczos(H: Qobj, iterations: int, init_state=None):
     """Docs
     """
     if not init_state:
         dim = H.shape[0]
         state = randint(dim - 1)
-        phi_n = get_state(state=state)
+        init = get_state(state=state)
     else:
         init = init_state
 
-    H_n = np.zeros((iters, iters), dtype=np.complex64)
-    for iter in range(iters):
+    H_n = np.zeros((iterations, iterations), dtype=np.complex64)
+    for iter in range(iterations):
         if iter == 0:
             a_n = H.matrix_element(init.dag(), init) / scalar(init)
             b_n = 0
 
-            phi_n_plus = H*init - a_n*init - b_n**2*init
+            phi_n_plus = H*init - a_n*init
             phi_n_minus = init
             phi_n = phi_n_plus
-        else:            
+        else:
+            a_n_minus = a_n
             a_n = H.matrix_element(phi_n.dag(), phi_n) / scalar(phi_n)
+
+            b_n_minus = b_n
             b_n = np.sqrt(scalar(phi_n) / scalar(phi_n_minus))
 
             phi_n_plus = H*phi_n - a_n*phi_n - b_n**2*phi_n_minus
             phi_n_minus = phi_n
             phi_n = phi_n_plus
             
-        for lgn in range(iters):
-            H_n[lgn, iter] = b_n*delta(lgn, iter + 1) + a_n*delta(lgn, iter) + \
-                    b_n*delta(lgn, iter - 1)
+            for lgn in range(iter + 1):
+                H_n[lgn, iter - 1] = b_n*delta(lgn, iter) + a_n_minus*delta(lgn, iter - 1) + b_n_minus*delta(lgn, iter - 2)
 
-    return Qobj(phi_n_minus), Qobj(H_n)
+                H_n[lgn, iter] = a_n*delta(lgn, iter) + b_n*delta(lgn, iter - 1)
+
+        H_phi = Qobj(H_n)
+        if scalar(phi_n) == 0:
+            print("Lanczos algorithm has converged!\n")
+            print(f"Maximum Eigenenergy is: {max(H_phi.eigenenergies())}\n")
+            print(f"Eigenstate is: {H_phi.eigenstates()[-1]}")
+            return
+    return
 
 U, t = 1, 1
 H_test = Qobj(np.array([
@@ -212,6 +222,5 @@ phi_test = Qobj(np.array([
 
 if __name__ == "__main__":
     H = get_H(model="Hubbard", U=1, t=1)
-    H_n = lanczos(H=H_test, iters=2, init_state=phi_test)
-    print(H_n)
+    H_n = lanczos(H=H_test, iterations=4, init_state=phi_test)
 
