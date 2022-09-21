@@ -26,9 +26,21 @@ from qutip import (Qobj, basis, create, destroy, num, tensor, identity)
 
 
 def scalar(m: Qobj, n=None) -> float:
-    """Computes scalar product for Fock space vectors.
+    """Computes scalar product for Fock space vectors such as
 
     scalar(m, n) = < m | n >.
+
+    Parameters
+    ----------
+    m: qutip.Qobj, default=None
+        Bra on which perform scalar product.
+    n: qutip.Qobj, default=None
+        Ket on which perform scalar product.
+
+    Returns
+    -------
+    -: int, float
+        Result of scalar product.
     """
     if n:
         val = m.dag()*n
