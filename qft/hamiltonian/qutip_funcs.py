@@ -78,7 +78,7 @@ def get_state(state: int, type="ket"):
     return vec.dag() if type == "bra" else vec
 
 
-def get_H(model: str, U: int, **kwargs):
+def get_hamiltonian(model: str, U: int, **kwargs):
     """Outputs the hamiltonian of specified many-body model.
 
     Parameters
@@ -138,7 +138,7 @@ def get_H(model: str, U: int, **kwargs):
     return H
 
 
-def get_E(H: Qobj, states: list):
+def get_e(H: Qobj, states: list):
     """Outputs a matrix element (energy) from the hamiltonian using 
     given kets on which perform projection.
 
@@ -221,6 +221,6 @@ phi_test = Qobj(np.array([
 
 
 if __name__ == "__main__":
-    H = get_H(model="Hubbard", U=1, t=1)
+    H = get_hamiltonian(model="Hubbard", U=1, t=1)
     H_n = lanczos(H=H_test, iterations=4, init_state=phi_test)
 
