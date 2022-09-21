@@ -1,7 +1,7 @@
 # /usr/bin/env python3
 
 """Module de test des fonctionnalités de la librairie
-Python Qutip. Les états ici discutés possèdent la forme
+Python 'Qutip'. Les états ici discutés possèdent la forme
 
   --------------------------------------- (c^dagger_1)^n_1 up
  |
@@ -28,7 +28,7 @@ from qutip import (Qobj, basis, create, destroy, num, tensor, identity)
 def scalar(m: Qobj, n=None) -> float:
     """Computes scalar product for Fock space vectors such as
 
-    scalar(m, n) = < m | n >.
+                    scalar(m, n) = < m | n >.
 
     Parameters
     ----------
@@ -82,7 +82,7 @@ class Network():
 
     def get_state(self, state: int, type="ket") -> Qobj:
         """Gives array-like representation of given state using 
-        Qutip 'tensor' function.
+        Qutip 'tensor' operation.
 
         Parameters
         ----------
@@ -112,7 +112,8 @@ class Network():
 
 
     def get_hamiltonian(self, model: str, U: int, **kwargs) -> Qobj:
-        """Outputs the hamiltonian of specified many-body model.
+        """Outputs the hamiltonian of fermion network using 
+        specified many-body model.
 
         Parameters
         ----------
@@ -158,6 +159,7 @@ class Network():
             H = U*H1 - t*H2
 
         elif model != "Hubbard":
+            # Potentially add AIM model
             pass
 
         return H
