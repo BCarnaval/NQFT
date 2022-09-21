@@ -230,7 +230,22 @@ class Network():
         return 0.0, basis(1)
 
 if __name__ == "__main__":
-    N = Network(sites_nb=8)
+    # U, t = 1, 1
+    # H_test = Qobj(np.array([
+    #     [U, -t, -t, 0],
+    #     [-t, 0, 0, -t],
+    #     [-t, 0, 0, -t],
+    #     [0, -t, -t, U]
+    #     ]))
+    # phi_test = Qobj(np.array([
+    #     [0],
+    #     [1],
+    #     [0],
+    #     [0]
+    #     ]))
+
+    N = Network(sites_nb=2)
     H = N.get_hamiltonian(model="Hubbard", U=1, t=1)
     val, state = N.lanczos(H=H, iterations=10)
+    print(val, "\n\n", state)
 
