@@ -174,6 +174,7 @@ class Network():
             Fermions network configuration.
         states: array-like, shape (2, 1), default=None
             Vectors used to process scalar product on H.
+
             (ex: states=[bra, ket] as integers to convert from binairy)
 
         Returns
