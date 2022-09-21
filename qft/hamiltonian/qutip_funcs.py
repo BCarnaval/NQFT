@@ -20,6 +20,7 @@ Python Qutip. Les états ici discutés possèdent la forme
 """
 
 import numpy as np
+from tqdm import trange
 from numpy.random import randint
 from qutip import (Qobj, basis, create, destroy, num, tensor, identity)
 
@@ -32,7 +33,7 @@ number = num(2)
 I = identity(2)
 
 
-def scalar(m: Qobj, n=None):
+def scalar(m: Qobj, n=None) -> float:
     """Computes scalar product for Fock space vectors.
 
     scalar(m, n) = < m | n >.
@@ -43,12 +44,23 @@ def scalar(m: Qobj, n=None):
         val = m.dag()*m
     return val.tr()
 
-def delta(j: int, k: int):
+def delta(j: int, k: int) -> float:
     """Kronecker delta function.
+
+    Parameters
+    ----------
+    j: int, default=None
+        First indice.
+    k: int, default=None
+        Second indice.
+
+    Returns
+    -------
+    -: float (0.0 or 1.0)
     """
     return 1.0 if j == k else 0.0
 
-def get_state(state: int, type="ket"):
+def get_state(state: int, type="ket") -> Qobj:
     """Gives array-like representation of given state using 
     Qutip 'tensor' function.
 
@@ -78,7 +90,7 @@ def get_state(state: int, type="ket"):
     return vec.dag() if type == "bra" else vec
 
 
-def get_hamiltonian(model: str, U: int, **kwargs):
+def get_hamiltonian(model: str, U: int, **kwargs) -> Qobj:
     """Outputs the hamiltonian of specified many-body model.
 
     Parameters
@@ -100,7 +112,7 @@ def get_hamiltonian(model: str, U: int, **kwargs):
         H1, H2 = 0, 0
         t, = kwargs.values()
 
-        for idx in range(SITES):
+        for idx in trange(SITES, desc="Hamitonian"):
             sites = [i for i in range(SITES)]
             ops_1 = [I for i in range(SITES*2)]
 
@@ -138,7 +150,7 @@ def get_hamiltonian(model: str, U: int, **kwargs):
     return H
 
 
-def get_e(H: Qobj, states: list):
+def get_e(H: Qobj, states: list) -> float:
     """Outputs a matrix element (energy) from the hamiltonian using 
     given kets on which perform projection.
 
@@ -152,7 +164,7 @@ def get_e(H: Qobj, states: list):
 
     Returns
     -------
-    E: qutip.Qobj.bra, shape (1, 1)
+    E: int
         Representation of projected vectors on H (energy).
     """
     bra, ket = get_state(states[0], type="bra"), get_state(states[1])
@@ -161,7 +173,7 @@ def get_e(H: Qobj, states: list):
     return E.tr()
 
 
-def lanczos(H: Qobj, iterations: int, init_state=None):
+def lanczos(H: Qobj, iterations: int, init_state=None) -> tuple:
     """Docs
     """
     if not init_state:
@@ -172,7 +184,7 @@ def lanczos(H: Qobj, iterations: int, init_state=None):
         init = init_state
 
     H_n = np.zeros((iterations, iterations), dtype=np.complex64)
-    for iter in range(iterations):
+    for iter in trange(iterations, desc="Lanczos algorithm"):
         if iter == 0:
             a_n = H.matrix_element(init.dag(), init) / scalar(init)
             b_n = 0
@@ -197,30 +209,19 @@ def lanczos(H: Qobj, iterations: int, init_state=None):
                 H_n[lgn, iter] = a_n*delta(lgn, iter) + b_n*delta(lgn, iter - 1)
 
         H_phi = Qobj(H_n)
-        if scalar(phi_n) == 0:
-            print("Lanczos algorithm has converged!\n")
-            print(f"Maximum Eigenenergy is: {max(H_phi.eigenenergies())}\n")
-            print(f"Eigenstate is: {H_phi.eigenstates()[-1]}")
-            return
-    return
 
-U, t = 1, 1
-H_test = Qobj(np.array([
-    [U, -t, -t, 0],
-    [-t, 0, 0, -t],
-    [-t, 0, 0, -t],
-    [0, -t, -t, U]
-    ]))
+        if scalar(phi_n) == 0:        
+            return H_phi.eigenenergies(), H_phi.eigenstates()[-1]
+        else:
+            pass
 
-phi_test = Qobj(np.array([
-    [0],
-    [1],
-    [0],
-    [0]
-    ]))
+    print("Lanczos algorithm hasn't converged!\n")
+    return [0.0], [basis(1)]
+
+
 
 
 if __name__ == "__main__":
     H = get_hamiltonian(model="Hubbard", U=1, t=1)
-    H_n = lanczos(H=H_test, iterations=4, init_state=phi_test)
+    energies, eigenstates = lanczos(H=H, iterations=10, init_state=None)
 
