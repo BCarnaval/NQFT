@@ -233,8 +233,8 @@ class Network():
         return 0.0, basis(1)
 
 if __name__ == "__main__":
-    N = Network(sites_nb=2)
-    H = N.get_hamiltonian(model="Hubbard", U=8, t=1)
-    val, state = N.lanczos(H, iterations=10)
-    print(print(val, state))
+    N = Network(sites_nb=10)
+    H = N.get_hamiltonian(model="Hubbard", U=1, t=1)
+    # val, state = N.lanczos(H, iterations=10)
+    print(H)
 
