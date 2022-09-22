@@ -1,22 +1,6 @@
-# /usr/bin/env python3
-
-"""Module de test des fonctionnalités de la librairie
-Python 'Qutip'. Les états ici discutés possèdent la forme
-
-  --------------------------------------- (c^dagger_1)^n_1 up
- |
- |   ------------------------------------ (c^dagger_2)^n_2 up
- |  |                                             .
- |  |                                             .
- |  |                                             .
- |  |                                       
- |  |         --------------------------- (c^dagger_1)^n_1 down
- |  |        |
- |  |        |   ------------------------ (c^dagger_2)^n_2 down
- |  |        |  |                                 .
- |  |        |  |                                 .
- |  |        |  |                                 .
-(      ...        ...)ket{0}
+"""This module tests Qutip python library functions, objects and 
+attributes in the context of Hubbard model using square fermion 
+networks.
 """
 
 import numpy as np
