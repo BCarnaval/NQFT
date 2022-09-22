@@ -3,50 +3,13 @@ attributes in the context of Hubbard model using square fermion
 networks.
 """
 
+import sys
 import numpy as np
 from tqdm import trange
 from numpy.random import randint
-from qutip import (Qobj, basis, create, destroy, num, tensor, identity)
+from qutip import Qobj, basis, create, destroy, num, tensor, identity
 
-
-def scalar(m: Qobj, n=None) -> float:
-    """Computes scalar product for Fock space vectors such as
-
-                    scalar(m, n) = < m | n >.
-
-    Parameters
-    ----------
-    m: qutip.Qobj, default=None
-        Bra on which perform scalar product.
-    n: qutip.Qobj, default=None
-        Ket on which perform scalar product.
-
-    Returns
-    -------
-    -: int, float
-        Result of scalar product.
-    """
-    if n:
-        val = m.dag()*n
-    else:
-        val = m.dag()*m
-    return val.tr()
-
-def delta(j: int, k: int) -> float:
-    """Kronecker delta function.
-
-    Parameters
-    ----------
-    j: int, default=None
-        First indice.
-    k: int, default=None
-        Second indice.
-
-    Returns
-    -------
-    -: float (0.0 or 1.0)
-    """
-    return 1.0 if j == k else 0.0
+from hamiltonian._funcs import scalar, delta
 
 
 class Network():
@@ -216,9 +179,12 @@ class Network():
         print(f"Lanczos algorithm hasn't converged with {iterations} iterations!\n")
         return 0.0, basis(1)
 
+
 if __name__ == "__main__":
-    N = Network(sites_nb=10)
-    H = N.get_hamiltonian(model="Hubbard", U=1, t=1)
-    # val, state = N.lanczos(H, iterations=10)
+    U, t = 1, 1
+    sites_nb, model = int(sys.argv[1]), sys.argv[2]
+
+    network = Network(sites_nb=sites_nb)
+    H = network.get_hamiltonian(model=model, U=U, t=t)
     print(H)
 
