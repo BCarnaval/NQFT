@@ -1,10 +1,11 @@
-"""This module tests Qutip python library functions, objects and 
-attributes in the context of Hubbard model using square fermion 
+"""This module tests Qutip python library functions, objects and
+attributes in the context of Hubbard model using square fermion
 networks.
 """
 
 import sys
 import numpy as np
+from pyqcm import *
 from tqdm import trange
 from numpy.random import randint
 from qutip import Qobj, basis, create, destroy, num, tensor, identity
@@ -28,7 +29,7 @@ class Network():
         return
 
     def get_state(self, state: int, type="ket") -> Qobj:
-        """Gives array-like representation of given state using 
+        """Gives array-like representation of given state using
         Qutip 'tensor' operation.
 
         Parameters
@@ -59,7 +60,7 @@ class Network():
 
 
     def get_hamiltonian(self, model: str, U: int, **kwargs) -> Qobj:
-        """Outputs the hamiltonian of fermion network using 
+        """Outputs the hamiltonian of fermion network using
         specified many-body model.
 
         Parameters
@@ -112,7 +113,7 @@ class Network():
         return H
 
     def get_e(self, H: Qobj, states: list) -> float:
-        """Outputs a matrix element (energy) from the hamiltonian using 
+        """Outputs a matrix element (energy) from the hamiltonian using
         given kets on which perform projection.
 
         Parameters
@@ -163,7 +164,7 @@ class Network():
                 phi_n_plus = H*phi_n - a_n*phi_n - b_n**2*phi_n_minus
                 phi_n_minus = phi_n
                 phi_n = phi_n_plus
-                
+
                 for lgn in range(iter + 1):
                     H_n[lgn, iter - 1] = b_n*delta(lgn, iter) + a_n_minus*delta(lgn, iter - 1) + b_n_minus*delta(lgn, iter - 2)
 
@@ -171,7 +172,7 @@ class Network():
 
             H_phi = Qobj(H_n)
 
-            if scalar(phi_n) == 0:        
+            if scalar(phi_n) == 0:
                 return H_phi.eigenenergies()[-1], H_phi.eigenstates()[-1][-1]
             else:
                 pass
@@ -181,10 +182,12 @@ class Network():
 
 
 if __name__ == "__main__":
-    U, t = 1, 1
-    sites_nb, model = int(sys.argv[1]), sys.argv[2]
+    new_cluster_model('clus', 4)
+    add_cluster('clus', [0,0,0], [[0,0,0], [1,0,0], [2,0,0],[3,0,0]])
+    lattice_model('1D_4', [[4,0,0]])
+    interaction_operator('U')
+    hopping_operator('t', [1,0,0], -1)
 
-    network = Network(sites_nb=sites_nb)
-    H = network.get_hamiltonian(model=model, U=U, t=t)
-    print(H)
+    from pyqcm.draw_operator import *
+    draw_operator('U')
 

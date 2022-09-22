@@ -1,5 +1,5 @@
-"""This module contains global functions used in the 
-expression and operation on Hubbard hamiltonian and 
+"""This module contains global functions used in the
+expression and operation on Hubbard hamiltonian and
 other Fock space operations.
 """
 
