@@ -2,7 +2,12 @@
 __pycache__/
 *.py[cod]
 *$py.class
+
+# MacOS meta-data (Desktop Services Store)
 .DS_Store
+
+# pyqcm .out model files
+tmp_model.out
 
 # C extensions
 *.so
