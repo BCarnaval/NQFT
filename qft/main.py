@@ -3,9 +3,7 @@ attributes in the context of Hubbard model using square fermion
 networks.
 """
 
-import sys
 import numpy as np
-from pyqcm import *
 from tqdm import trange
 from numpy.random import randint
 from qutip import Qobj, basis, create, destroy, num, tensor, identity
@@ -182,12 +180,7 @@ class Network():
 
 
 if __name__ == "__main__":
-    new_cluster_model('clus', 4)
-    add_cluster('clus', [0,0,0], [[0,0,0], [1,0,0], [2,0,0],[3,0,0]])
-    lattice_model('1D_4', [[4,0,0]])
-    interaction_operator('U')
-    hopping_operator('t', [1,0,0], -1)
-
-    from pyqcm.draw_operator import *
-    draw_operator('U')
+    N = Network(sites_nb=4)
+    H = N.get_hamiltonian(model="Hubbard", U=1, t=1)
+    print(H)
 
