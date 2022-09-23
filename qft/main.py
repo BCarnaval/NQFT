@@ -8,7 +8,7 @@ from tqdm import trange
 from numpy.random import randint
 from qutip import Qobj, basis, create, destroy, num, tensor, identity
 
-from hamiltonian._funcs import scalar, delta
+from qft.hamiltonian._functions import scalar, delta
 
 
 class Network():
