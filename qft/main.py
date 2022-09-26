@@ -4,11 +4,11 @@ networks.
 """
 
 import numpy as np
-from tqdm import trange
+from rich.progress import track
 from numpy.random import randint
 from qutip import Qobj, basis, create, destroy, num, tensor, identity
 
-from qft.hamiltonian._functions import scalar, delta
+from hamiltonian._functions import scalar, delta
 
 
 class Network():
@@ -80,7 +80,7 @@ class Network():
             H1, H2 = 0, 0
             t, = kwargs.values()
 
-            for idx in trange(self.sites, desc="Hamitonian"):
+            for idx in track(range(self.sites), description="Hamitonian"):
                 sites = [i for i in range(self.sites)]
                 ops_1 = [self.I for i in range(self.sites*2)]
 
@@ -144,7 +144,7 @@ class Network():
             init = init_state
 
         H_n = np.zeros((iterations, iterations), dtype=np.complex64)
-        for iter in trange(iterations, desc="Lanczos algorithm"):
+        for iter in track(range(iterations), description="Lanczos algorithm"):
             if iter == 0:
                 a_n = H.matrix_element(init.dag(), init) / scalar(init)
                 b_n = 0
@@ -180,7 +180,7 @@ class Network():
 
 
 if __name__ == "__main__":
-    N = Network(sites_nb=4)
+    N = Network(sites_nb=6)
     H = N.get_hamiltonian(model="Hubbard", U=1, t=1)
     print(H)
 
