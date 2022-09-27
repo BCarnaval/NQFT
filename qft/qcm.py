@@ -37,12 +37,11 @@ def main(shape: tuple) -> None:
 
     interaction_operator('U')
     hopping_operator('t', [1,0,0], -1)
+    draw_operator('U')
 
-    draw_operator('t')
-    print_graph('clus', 4)
     return
 
 
 if __name__ == "__main__":
-    main(shape=(8,8))
+    main(shape=(4,4))
 
