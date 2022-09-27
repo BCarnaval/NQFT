@@ -1,4 +1,4 @@
-<h1 align="center">QFT (Quantum Field Theory)</h1>
+<h1 align="center">NQFT (Numerical Quantum Field Theory)</h1>
 
 <div align="center">
   <img width="180" height="180" src="./qft/figs/title_fig.png">

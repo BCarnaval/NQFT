@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "QFT"
+name = "NQFT"
 version = "0.1.0"
 description = ""
 authors = ["BCarnaval <antoinedelagrave@hotmail.com>"]

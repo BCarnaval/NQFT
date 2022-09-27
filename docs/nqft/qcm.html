@@ -43,6 +43,14 @@ def build_matrix(shape: tuple) -&gt; list:
     -------
     array: np.ndarray, shape (*shape)
         Numpy array of coordinates.
+
+    Examples
+    --------
+    &gt;&gt;&gt; build_matrix(shape=(2,2))
+    &gt;&gt;&gt; [[-1  0  0]
+    [ 0  0  0]
+    [-1  1  0]
+    [ 0  1  0]]
     &#34;&#34;&#34;
     array, I = [], np.identity(3)
     for i in range(shape[0]):
@@ -71,7 +79,7 @@ def main(shape: tuple) -&gt; None:
 
 
 if __name__ == &#34;__main__&#34;:
-    main(shape=(4,4))</code></pre>
+    print(build_matrix(shape=(2, 2)))</code></pre>
 </details>
 </section>
 <section>
@@ -96,7 +104,14 @@ shape[0]*shape[1] sites.</p>
 <dl>
 <dt><strong><code>array</code></strong> :&ensp;<code>np.ndarray, shape (*shape)</code></dt>
 <dd>Numpy array of coordinates.</dd>
-</dl></div>
+</dl>
+<h2 id="examples">Examples</h2>
+<pre><code class="language-python-repl">&gt;&gt;&gt; build_matrix(shape=(2,2))
+&gt;&gt;&gt; [[-1  0  0]
+[ 0  0  0]
+[-1  1  0]
+[ 0  1  0]]
+</code></pre></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -114,6 +129,14 @@ shape[0]*shape[1] sites.</p>
     -------
     array: np.ndarray, shape (*shape)
         Numpy array of coordinates.
+
+    Examples
+    --------
+    &gt;&gt;&gt; build_matrix(shape=(2,2))
+    &gt;&gt;&gt; [[-1  0  0]
+    [ 0  0  0]
+    [-1  1  0]
+    [ 0  1  0]]
     &#34;&#34;&#34;
     array, I = [], np.identity(3)
     for i in range(shape[0]):

@@ -5,18 +5,33 @@ networks.
 
 import numpy as np
 from rich.progress import track
-from numpy.random import randint
 from qutip import Qobj, basis, create, destroy, num, tensor, identity
 
 from hamiltonian._functions import scalar, delta
 
 
 class Network():
-    """Docs
+    """A class representing a fermionic many-body problem Network
+
+    Attributes
+    ----------
+    sites_nb: int, default=None
+        Number of sites of the network
+    vaccum: Qobj, shape (2, 1)
+        Vaccum state of 2D Fock space.
+    creation: Qobj, shape (2, 2)
+        Creation operator in second quantization formalism.
+    anihilation: Qobj, shape (2, 2)
+        Anihilation operator in second quantization formalism.
+    number: Qobj, shape (2, 2)
+        Number operator in second quantization formalism.
+    I: Qobj, shape (2, 2)
+        Identity operator.
     """
 
     def __init__(self, sites_nb: int) -> None:
-        """Docs
+        """Sets Network attributes to given values and computes
+        the other ones.
         """
         self.sites = sites_nb
         self.vaccum = basis(2)
@@ -41,6 +56,17 @@ class Network():
         -------
         bra, ket: qutip.Qobj, shape (4^SITES, 1)
             Full vector representation.
+
+        Examples
+        --------
+        >>> N = Network(sites_nb=1)
+        >>> self.get_state(state=2)
+        >>> Quantum object: dims = [[2, 2], [1, 1]], shape = (4, 1), type = ket
+        Qobj data =
+        [[0.]
+         [0.]
+         [1.]
+         [0.]]
         """
         binairy = format(state, 'b').zfill(self.sites*2)
         ket = [*binairy]
@@ -75,6 +101,21 @@ class Network():
         -------
         H: qutip.Qobj, shape (4^SITES, 4^SITES)
             Tensor object representing hamitonian for given 'model'.
+
+        Examples
+        --------
+        >>> N = Network(sites_nb=1)
+        >>> N.get_hamiltonian(model="Hubbard", U=1, t=1)
+        >>> Quantum object: dims = [[2, 2, 2, 2, 2, 2, 2, 2], [2, 2, 2, 2, 2, 2, 2, 2]],
+        shape = (256, 256), type = oper, isherm = True
+        Qobj data =
+        [[ 0.  0.  0. ...  0.  0.  0.]
+         [ 0.  0. -1. ...  0.  0.  0.]
+         [ 0. -1.  0. ...  0.  0.  0.]
+         ...
+         [ 0.  0.  0. ...  3. -1.  0.]
+         [ 0.  0.  0. ... -1.  3.  0.]
+         [ 0.  0.  0. ...  0.  0.  4.]]
         """
         if model == "Hubbard":
             H1, H2 = 0, 0
@@ -116,8 +157,8 @@ class Network():
 
         Parameters
         ----------
-        model: str, default=None
-            Fermions network configuration.
+        H: Qobj, shape (4^self.sites, 4^self.sites), default=None
+            Fermions network hamiltonian.
         states: array-like, shape (2, 1), default=None
             Vectors used to process scalar product on H.
 
@@ -127,6 +168,13 @@ class Network():
         -------
         E: int
             Representation of projected vectors on H (energy).
+
+        Examples
+        --------
+        >>> N = Network(sites_nb=2)
+        >>> Hamiltonian = N.get_hamiltonian(model="Hubbard", U=2, t=1)
+        >>> N.get_e(H=Hamiltonian, states=[15, 15])
+        >>> 2.0
         """
         bra, ket = self.get_state(states[0], type="bra"), self.get_state(states[1])
         E = bra*H*ket
@@ -134,11 +182,43 @@ class Network():
         return E.tr()
 
     def lanczos(self, H: Qobj, iterations: int, init_state=None) -> tuple:
-        """Docs
+        """Implementation of Lanczos algorithm for Network hamiltonian.
+
+        Parameters
+        ----------
+        H: Qobj, shape (4^self.sites, 4^self.sites), default=None
+            Fermions network hamiltonian.
+        iterations: int, default=None
+            Number of iterations on which perform the algorithm.
+        init_state: QObj, shape (4^self.sites, 1) default=random
+            Initial quantum state to start the first iteration.
+
+        Returns
+        -------
+        -: tuple, shape (1, 2)
+            Respectively the maximum eigenvalue and the associated eigenvector.
+
+        Examples
+        --------
+        >>> N = Network(sites_nb=2)
+        >>> Hamitonian = N.get_hamiltonian(model="Hubbard", U=1, t=1)
+        >>> N.lanczos(H=Hamiltonian, iterations=10)
+        >>> (2.561552779602264, Quantum object: dims = [[10], [1]], shape = (10, 1), type = ket
+        Qobj data =
+        [[0.43516215]
+         [0.78820544]
+         [0.43516215]
+         [0.        ]
+         [0.        ]
+         [0.        ]
+         [0.        ]
+         [0.        ]
+         [0.        ]
+         [0.        ]])
         """
         if not init_state:
             dim = H.shape[0]
-            state = randint(dim - 1)
+            state = np.randint(dim - 1)
             init = self.get_state(state=state)
         else:
             init = init_state
@@ -180,7 +260,7 @@ class Network():
 
 
 if __name__ == "__main__":
-    N = Network(sites_nb=8)
+    N = Network(sites_nb=2)
     H = N.get_hamiltonian(model="Hubbard", U=1, t=1)
-    print(H)
+    print(N.lanczos(H=H, iterations=10))
 

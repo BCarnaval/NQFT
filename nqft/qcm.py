@@ -15,6 +15,14 @@ def build_matrix(shape: tuple) -> list:
     -------
     array: np.ndarray, shape (*shape)
         Numpy array of coordinates.
+
+    Examples
+    --------
+    >>> build_matrix(shape=(2,2))
+    >>> [[-1  0  0]
+    [ 0  0  0]
+    [-1  1  0]
+    [ 0  1  0]]
     """
     array, I = [], np.identity(3)
     for i in range(shape[0]):
@@ -43,5 +51,5 @@ def main(shape: tuple) -> None:
 
 
 if __name__ == "__main__":
-    main(shape=(4,4))
+    print(build_matrix(shape=(2, 2)))
 

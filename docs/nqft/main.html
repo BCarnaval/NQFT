@@ -38,18 +38,33 @@ networks.
 
 import numpy as np
 from rich.progress import track
-from numpy.random import randint
 from qutip import Qobj, basis, create, destroy, num, tensor, identity
 
 from hamiltonian._functions import scalar, delta
 
 
 class Network():
-    &#34;&#34;&#34;Docs
+    &#34;&#34;&#34;A class representing a fermionic many-body problem Network
+
+    Attributes
+    ----------
+    sites_nb: int, default=None
+        Number of sites of the network
+    vaccum: Qobj, shape (2, 1)
+        Vaccum state of 2D Fock space.
+    creation: Qobj, shape (2, 2)
+        Creation operator in second quantization formalism.
+    anihilation: Qobj, shape (2, 2)
+        Anihilation operator in second quantization formalism.
+    number: Qobj, shape (2, 2)
+        Number operator in second quantization formalism.
+    I: Qobj, shape (2, 2)
+        Identity operator.
     &#34;&#34;&#34;
 
     def __init__(self, sites_nb: int) -&gt; None:
-        &#34;&#34;&#34;Docs
+        &#34;&#34;&#34;Sets Network attributes to given values and computes
+        the other ones.
         &#34;&#34;&#34;
         self.sites = sites_nb
         self.vaccum = basis(2)
@@ -74,6 +89,17 @@ class Network():
         -------
         bra, ket: qutip.Qobj, shape (4^SITES, 1)
             Full vector representation.
+
+        Examples
+        --------
+        &gt;&gt;&gt; N = Network(sites_nb=1)
+        &gt;&gt;&gt; self.get_state(state=2)
+        &gt;&gt;&gt; Quantum object: dims = [[2, 2], [1, 1]], shape = (4, 1), type = ket
+        Qobj data =
+        [[0.]
+         [0.]
+         [1.]
+         [0.]]
         &#34;&#34;&#34;
         binairy = format(state, &#39;b&#39;).zfill(self.sites*2)
         ket = [*binairy]
@@ -108,6 +134,21 @@ class Network():
         -------
         H: qutip.Qobj, shape (4^SITES, 4^SITES)
             Tensor object representing hamitonian for given &#39;model&#39;.
+
+        Examples
+        --------
+        &gt;&gt;&gt; N = Network(sites_nb=1)
+        &gt;&gt;&gt; N.get_hamiltonian(model=&#34;Hubbard&#34;, U=1, t=1)
+        &gt;&gt;&gt; Quantum object: dims = [[2, 2, 2, 2, 2, 2, 2, 2], [2, 2, 2, 2, 2, 2, 2, 2]],
+        shape = (256, 256), type = oper, isherm = True
+        Qobj data =
+        [[ 0.  0.  0. ...  0.  0.  0.]
+         [ 0.  0. -1. ...  0.  0.  0.]
+         [ 0. -1.  0. ...  0.  0.  0.]
+         ...
+         [ 0.  0.  0. ...  3. -1.  0.]
+         [ 0.  0.  0. ... -1.  3.  0.]
+         [ 0.  0.  0. ...  0.  0.  4.]]
         &#34;&#34;&#34;
         if model == &#34;Hubbard&#34;:
             H1, H2 = 0, 0
@@ -149,8 +190,8 @@ class Network():
 
         Parameters
         ----------
-        model: str, default=None
-            Fermions network configuration.
+        H: Qobj, shape (4^self.sites, 4^self.sites), default=None
+            Fermions network hamiltonian.
         states: array-like, shape (2, 1), default=None
             Vectors used to process scalar product on H.
 
@@ -160,6 +201,13 @@ class Network():
         -------
         E: int
             Representation of projected vectors on H (energy).
+
+        Examples
+        --------
+        &gt;&gt;&gt; N = Network(sites_nb=2)
+        &gt;&gt;&gt; Hamiltonian = N.get_hamiltonian(model=&#34;Hubbard&#34;, U=2, t=1)
+        &gt;&gt;&gt; N.get_e(H=Hamiltonian, states=[15, 15])
+        &gt;&gt;&gt; 2.0
         &#34;&#34;&#34;
         bra, ket = self.get_state(states[0], type=&#34;bra&#34;), self.get_state(states[1])
         E = bra*H*ket
@@ -167,11 +215,43 @@ class Network():
         return E.tr()
 
     def lanczos(self, H: Qobj, iterations: int, init_state=None) -&gt; tuple:
-        &#34;&#34;&#34;Docs
+        &#34;&#34;&#34;Implementation of Lanczos algorithm for Network hamiltonian.
+
+        Parameters
+        ----------
+        H: Qobj, shape (4^self.sites, 4^self.sites), default=None
+            Fermions network hamiltonian.
+        iterations: int, default=None
+            Number of iterations on which perform the algorithm.
+        init_state: QObj, shape (4^self.sites, 1) default=random
+            Initial quantum state to start the first iteration.
+
+        Returns
+        -------
+        -: tuple, shape (1, 2)
+            Respectively the maximum eigenvalue and the associated eigenvector.
+
+        Examples
+        --------
+        &gt;&gt;&gt; N = Network(sites_nb=2)
+        &gt;&gt;&gt; Hamitonian = N.get_hamiltonian(model=&#34;Hubbard&#34;, U=1, t=1)
+        &gt;&gt;&gt; N.lanczos(H=Hamiltonian, iterations=10)
+        &gt;&gt;&gt; (2.561552779602264, Quantum object: dims = [[10], [1]], shape = (10, 1), type = ket
+        Qobj data =
+        [[0.43516215]
+         [0.78820544]
+         [0.43516215]
+         [0.        ]
+         [0.        ]
+         [0.        ]
+         [0.        ]
+         [0.        ]
+         [0.        ]
+         [0.        ]])
         &#34;&#34;&#34;
         if not init_state:
             dim = H.shape[0]
-            state = randint(dim - 1)
+            state = np.randint(dim - 1)
             init = self.get_state(state=state)
         else:
             init = init_state
@@ -213,9 +293,9 @@ class Network():
 
 
 if __name__ == &#34;__main__&#34;:
-    N = Network(sites_nb=8)
+    N = Network(sites_nb=2)
     H = N.get_hamiltonian(model=&#34;Hubbard&#34;, U=1, t=1)
-    print(H)</code></pre>
+    print(N.lanczos(H=H, iterations=10))</code></pre>
 </details>
 </section>
 <section>
@@ -223,85 +303,6 @@ if __name__ == &#34;__main__&#34;:
 <section>
 </section>
 <section>
-<h2 class="section-title" id="header-functions">Functions</h2>
-<dl>
-<dt id="qft.main.randint"><code class="name flex">
-<span>def <span class="ident">randint</span></span>(<span>low, high=None, size=None, dtype=builtins.int)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Return random integers from <code>low</code> (inclusive) to <code>high</code> (exclusive).</p>
-<p>Return random integers from the "discrete uniform" distribution of
-the specified dtype in the "half-open" interval [<code>low</code>, <code>high</code>). If
-<code>high</code> is None (the default), then results are from [0, <code>low</code>).</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>New code should use the <code>integers</code> method of a <code>default_rng()</code>
-instance instead; please see the :ref:<code>random-quick-start</code>.</p>
-</div>
-<h2 id="parameters">Parameters</h2>
-<dl>
-<dt><strong><code>low</code></strong> :&ensp;<code>int</code> or <code>array-like</code> of <code>ints</code></dt>
-<dd>Lowest (signed) integers to be drawn from the distribution (unless
-<code>high=None</code>, in which case this parameter is one above the
-<em>highest</em> such integer).</dd>
-<dt><strong><code>high</code></strong> :&ensp;<code>int</code> or <code>array-like</code> of <code>ints</code>, optional</dt>
-<dd>If provided, one above the largest (signed) integer to be drawn
-from the distribution (see above for behavior if <code>high=None</code>).
-If array-like, must contain integer values</dd>
-<dt><strong><code>size</code></strong> :&ensp;<code>int</code> or <code>tuple</code> of <code>ints</code>, optional</dt>
-<dd>Output shape.
-If the given shape is, e.g., <code>(m, n, k)</code>, then
-<code>m * n * k</code> samples are drawn.
-Default is None, in which case a
-single value is returned.</dd>
-<dt><strong><code>dtype</code></strong> :&ensp;<code>dtype</code>, optional</dt>
-<dd>
-<p>Desired dtype of the result. Byteorder must be native.
-The default value is int.</p>
-<div class="admonition versionadded">
-<p class="admonition-title">Added in version:&ensp;1.11.0</p>
-</div>
-</dd>
-</dl>
-<h2 id="returns">Returns</h2>
-<dl>
-<dt><strong><code>out</code></strong> :&ensp;<code>int</code> or <code>ndarray</code> of <code>ints</code></dt>
-<dd><code>size</code>-shaped array of random integers from the appropriate
-distribution, or a single such random int if <code>size</code> not provided.</dd>
-</dl>
-<h2 id="see-also">See Also</h2>
-<dl>
-<dt><code>random_integers</code></dt>
-<dd>similar to <code><a title="qft.main.randint" href="#qft.main.randint">RandomState.randint()</a></code>, only for the closed interval [<code>low</code>, <code>high</code>], and 1 is the lowest value if <code>high</code> is omitted.</dd>
-<dt><code>random.Generator.integers</code></dt>
-<dd>which should be used for new code.</dd>
-</dl>
-<h2 id="examples">Examples</h2>
-<pre><code class="language-python-repl">&gt;&gt;&gt; np.random.randint(2, size=10)
-array([1, 0, 0, 0, 1, 1, 0, 0, 1, 0]) # random
-&gt;&gt;&gt; np.random.randint(1, size=10)
-array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
-</code></pre>
-<p>Generate a 2 x 4 array of ints between 0 and 4, inclusive:</p>
-<pre><code class="language-python-repl">&gt;&gt;&gt; np.random.randint(5, size=(2, 4))
-array([[4, 0, 2, 1], # random
-       [3, 2, 2, 0]])
-</code></pre>
-<p>Generate a 1 x 3 array with 3 different upper bounds</p>
-<pre><code class="language-python-repl">&gt;&gt;&gt; np.random.randint(1, [3, 5, 10])
-array([2, 2, 9]) # random
-</code></pre>
-<p>Generate a 1 by 3 array with 3 different lower bounds</p>
-<pre><code class="language-python-repl">&gt;&gt;&gt; np.random.randint([1, 5, 7], 10)
-array([9, 8, 7]) # random
-</code></pre>
-<p>Generate a 2 by 4 array using broadcasting with dtype of uint8</p>
-<pre><code class="language-python-repl">&gt;&gt;&gt; np.random.randint([1, 3, 5, 7], [[10], [20]], dtype=np.uint8)
-array([[ 8,  6,  9,  7], # random
-       [ 1, 16,  9, 12]], dtype=uint8)
-</code></pre></div>
-</dd>
-</dl>
 </section>
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
@@ -311,18 +312,50 @@ array([[ 8,  6,  9,  7], # random
 <span>(</span><span>sites_nb: int)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Docs</p>
-<p>Docs</p></div>
+<div class="desc"><p>A class representing a fermionic many-body problem Network</p>
+<h2 id="attributes">Attributes</h2>
+<dl>
+<dt><strong><code>sites_nb</code></strong> :&ensp;<code>int</code>, default=<code>None</code></dt>
+<dd>Number of sites of the network</dd>
+<dt><strong><code>vaccum</code></strong> :&ensp;<code>Qobj, shape (2, 1)</code></dt>
+<dd>Vaccum state of 2D Fock space.</dd>
+<dt><strong><code>creation</code></strong> :&ensp;<code>Qobj, shape (2, 2)</code></dt>
+<dd>Creation operator in second quantization formalism.</dd>
+<dt><strong><code>anihilation</code></strong> :&ensp;<code>Qobj, shape (2, 2)</code></dt>
+<dd>Anihilation operator in second quantization formalism.</dd>
+<dt><strong><code>number</code></strong> :&ensp;<code>Qobj, shape (2, 2)</code></dt>
+<dd>Number operator in second quantization formalism.</dd>
+<dt><strong><code>I</code></strong> :&ensp;<code>Qobj, shape (2, 2)</code></dt>
+<dd>Identity operator.</dd>
+</dl>
+<p>Sets Network attributes to given values and computes
+the other ones.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class Network():
-    &#34;&#34;&#34;Docs
+    &#34;&#34;&#34;A class representing a fermionic many-body problem Network
+
+    Attributes
+    ----------
+    sites_nb: int, default=None
+        Number of sites of the network
+    vaccum: Qobj, shape (2, 1)
+        Vaccum state of 2D Fock space.
+    creation: Qobj, shape (2, 2)
+        Creation operator in second quantization formalism.
+    anihilation: Qobj, shape (2, 2)
+        Anihilation operator in second quantization formalism.
+    number: Qobj, shape (2, 2)
+        Number operator in second quantization formalism.
+    I: Qobj, shape (2, 2)
+        Identity operator.
     &#34;&#34;&#34;
 
     def __init__(self, sites_nb: int) -&gt; None:
-        &#34;&#34;&#34;Docs
+        &#34;&#34;&#34;Sets Network attributes to given values and computes
+        the other ones.
         &#34;&#34;&#34;
         self.sites = sites_nb
         self.vaccum = basis(2)
@@ -347,6 +380,17 @@ array([[ 8,  6,  9,  7], # random
         -------
         bra, ket: qutip.Qobj, shape (4^SITES, 1)
             Full vector representation.
+
+        Examples
+        --------
+        &gt;&gt;&gt; N = Network(sites_nb=1)
+        &gt;&gt;&gt; self.get_state(state=2)
+        &gt;&gt;&gt; Quantum object: dims = [[2, 2], [1, 1]], shape = (4, 1), type = ket
+        Qobj data =
+        [[0.]
+         [0.]
+         [1.]
+         [0.]]
         &#34;&#34;&#34;
         binairy = format(state, &#39;b&#39;).zfill(self.sites*2)
         ket = [*binairy]
@@ -381,6 +425,21 @@ array([[ 8,  6,  9,  7], # random
         -------
         H: qutip.Qobj, shape (4^SITES, 4^SITES)
             Tensor object representing hamitonian for given &#39;model&#39;.
+
+        Examples
+        --------
+        &gt;&gt;&gt; N = Network(sites_nb=1)
+        &gt;&gt;&gt; N.get_hamiltonian(model=&#34;Hubbard&#34;, U=1, t=1)
+        &gt;&gt;&gt; Quantum object: dims = [[2, 2, 2, 2, 2, 2, 2, 2], [2, 2, 2, 2, 2, 2, 2, 2]],
+        shape = (256, 256), type = oper, isherm = True
+        Qobj data =
+        [[ 0.  0.  0. ...  0.  0.  0.]
+         [ 0.  0. -1. ...  0.  0.  0.]
+         [ 0. -1.  0. ...  0.  0.  0.]
+         ...
+         [ 0.  0.  0. ...  3. -1.  0.]
+         [ 0.  0.  0. ... -1.  3.  0.]
+         [ 0.  0.  0. ...  0.  0.  4.]]
         &#34;&#34;&#34;
         if model == &#34;Hubbard&#34;:
             H1, H2 = 0, 0
@@ -422,8 +481,8 @@ array([[ 8,  6,  9,  7], # random
 
         Parameters
         ----------
-        model: str, default=None
-            Fermions network configuration.
+        H: Qobj, shape (4^self.sites, 4^self.sites), default=None
+            Fermions network hamiltonian.
         states: array-like, shape (2, 1), default=None
             Vectors used to process scalar product on H.
 
@@ -433,6 +492,13 @@ array([[ 8,  6,  9,  7], # random
         -------
         E: int
             Representation of projected vectors on H (energy).
+
+        Examples
+        --------
+        &gt;&gt;&gt; N = Network(sites_nb=2)
+        &gt;&gt;&gt; Hamiltonian = N.get_hamiltonian(model=&#34;Hubbard&#34;, U=2, t=1)
+        &gt;&gt;&gt; N.get_e(H=Hamiltonian, states=[15, 15])
+        &gt;&gt;&gt; 2.0
         &#34;&#34;&#34;
         bra, ket = self.get_state(states[0], type=&#34;bra&#34;), self.get_state(states[1])
         E = bra*H*ket
@@ -440,11 +506,43 @@ array([[ 8,  6,  9,  7], # random
         return E.tr()
 
     def lanczos(self, H: Qobj, iterations: int, init_state=None) -&gt; tuple:
-        &#34;&#34;&#34;Docs
+        &#34;&#34;&#34;Implementation of Lanczos algorithm for Network hamiltonian.
+
+        Parameters
+        ----------
+        H: Qobj, shape (4^self.sites, 4^self.sites), default=None
+            Fermions network hamiltonian.
+        iterations: int, default=None
+            Number of iterations on which perform the algorithm.
+        init_state: QObj, shape (4^self.sites, 1) default=random
+            Initial quantum state to start the first iteration.
+
+        Returns
+        -------
+        -: tuple, shape (1, 2)
+            Respectively the maximum eigenvalue and the associated eigenvector.
+
+        Examples
+        --------
+        &gt;&gt;&gt; N = Network(sites_nb=2)
+        &gt;&gt;&gt; Hamitonian = N.get_hamiltonian(model=&#34;Hubbard&#34;, U=1, t=1)
+        &gt;&gt;&gt; N.lanczos(H=Hamiltonian, iterations=10)
+        &gt;&gt;&gt; (2.561552779602264, Quantum object: dims = [[10], [1]], shape = (10, 1), type = ket
+        Qobj data =
+        [[0.43516215]
+         [0.78820544]
+         [0.43516215]
+         [0.        ]
+         [0.        ]
+         [0.        ]
+         [0.        ]
+         [0.        ]
+         [0.        ]
+         [0.        ]])
         &#34;&#34;&#34;
         if not init_state:
             dim = H.shape[0]
-            state = randint(dim - 1)
+            state = np.randint(dim - 1)
             init = self.get_state(state=state)
         else:
             init = init_state
@@ -494,8 +592,8 @@ array([[ 8,  6,  9,  7], # random
 given kets on which perform projection.</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
-<dt><strong><code>model</code></strong> :&ensp;<code>str</code>, default=<code>None</code></dt>
-<dd>Fermions network configuration.</dd>
+<dt><strong><code>H</code></strong> :&ensp;<code>Qobj, shape (4^self.sites, 4^self.sites)</code>, default=<code>None</code></dt>
+<dd>Fermions network hamiltonian.</dd>
 <dt><strong><code>states</code></strong> :&ensp;<code>array-like, shape (2, 1)</code>, default=<code>None</code></dt>
 <dd>
 <p>Vectors used to process scalar product on H.</p>
@@ -506,7 +604,13 @@ given kets on which perform projection.</p>
 <dl>
 <dt><strong><code>E</code></strong> :&ensp;<code>int</code></dt>
 <dd>Representation of projected vectors on H (energy).</dd>
-</dl></div>
+</dl>
+<h2 id="examples">Examples</h2>
+<pre><code class="language-python-repl">&gt;&gt;&gt; N = Network(sites_nb=2)
+&gt;&gt;&gt; Hamiltonian = N.get_hamiltonian(model=&quot;Hubbard&quot;, U=2, t=1)
+&gt;&gt;&gt; N.get_e(H=Hamiltonian, states=[15, 15])
+&gt;&gt;&gt; 2.0
+</code></pre></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -517,8 +621,8 @@ given kets on which perform projection.</p>
 
     Parameters
     ----------
-    model: str, default=None
-        Fermions network configuration.
+    H: Qobj, shape (4^self.sites, 4^self.sites), default=None
+        Fermions network hamiltonian.
     states: array-like, shape (2, 1), default=None
         Vectors used to process scalar product on H.
 
@@ -528,6 +632,13 @@ given kets on which perform projection.</p>
     -------
     E: int
         Representation of projected vectors on H (energy).
+
+    Examples
+    --------
+    &gt;&gt;&gt; N = Network(sites_nb=2)
+    &gt;&gt;&gt; Hamiltonian = N.get_hamiltonian(model=&#34;Hubbard&#34;, U=2, t=1)
+    &gt;&gt;&gt; N.get_e(H=Hamiltonian, states=[15, 15])
+    &gt;&gt;&gt; 2.0
     &#34;&#34;&#34;
     bra, ket = self.get_state(states[0], type=&#34;bra&#34;), self.get_state(states[1])
     E = bra*H*ket
@@ -555,7 +666,21 @@ Probability amplitude for fermions to jump.</p>
 <dl>
 <dt><strong><code>H</code></strong> :&ensp;<code>qutip.Qobj, shape (4^SITES, 4^SITES)</code></dt>
 <dd>Tensor object representing hamitonian for given 'model'.</dd>
-</dl></div>
+</dl>
+<h2 id="examples">Examples</h2>
+<pre><code class="language-python-repl">&gt;&gt;&gt; N = Network(sites_nb=1)
+&gt;&gt;&gt; N.get_hamiltonian(model=&quot;Hubbard&quot;, U=1, t=1)
+&gt;&gt;&gt; Quantum object: dims = [[2, 2, 2, 2, 2, 2, 2, 2], [2, 2, 2, 2, 2, 2, 2, 2]],
+shape = (256, 256), type = oper, isherm = True
+Qobj data =
+[[ 0.  0.  0. ...  0.  0.  0.]
+ [ 0.  0. -1. ...  0.  0.  0.]
+ [ 0. -1.  0. ...  0.  0.  0.]
+ ...
+ [ 0.  0.  0. ...  3. -1.  0.]
+ [ 0.  0.  0. ... -1.  3.  0.]
+ [ 0.  0.  0. ...  0.  0.  4.]]
+</code></pre></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -578,6 +703,21 @@ Probability amplitude for fermions to jump.</p>
     -------
     H: qutip.Qobj, shape (4^SITES, 4^SITES)
         Tensor object representing hamitonian for given &#39;model&#39;.
+
+    Examples
+    --------
+    &gt;&gt;&gt; N = Network(sites_nb=1)
+    &gt;&gt;&gt; N.get_hamiltonian(model=&#34;Hubbard&#34;, U=1, t=1)
+    &gt;&gt;&gt; Quantum object: dims = [[2, 2, 2, 2, 2, 2, 2, 2], [2, 2, 2, 2, 2, 2, 2, 2]],
+    shape = (256, 256), type = oper, isherm = True
+    Qobj data =
+    [[ 0.  0.  0. ...  0.  0.  0.]
+     [ 0.  0. -1. ...  0.  0.  0.]
+     [ 0. -1.  0. ...  0.  0.  0.]
+     ...
+     [ 0.  0.  0. ...  3. -1.  0.]
+     [ 0.  0.  0. ... -1.  3.  0.]
+     [ 0.  0.  0. ...  0.  0.  4.]]
     &#34;&#34;&#34;
     if model == &#34;Hubbard&#34;:
         H1, H2 = 0, 0
@@ -631,7 +771,17 @@ Qutip 'tensor' operation.</p>
 <dl>
 <dt><strong><code>bra</code></strong>, <strong><code>ket</code></strong> :&ensp;<code>qutip.Qobj, shape (4^SITES, 1)</code></dt>
 <dd>Full vector representation.</dd>
-</dl></div>
+</dl>
+<h2 id="examples">Examples</h2>
+<pre><code class="language-python-repl">&gt;&gt;&gt; N = Network(sites_nb=1)
+&gt;&gt;&gt; self.get_state(state=2)
+&gt;&gt;&gt; Quantum object: dims = [[2, 2], [1, 1]], shape = (4, 1), type = ket
+Qobj data =
+[[0.]
+ [0.]
+ [1.]
+ [0.]]
+</code></pre></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -651,6 +801,17 @@ Qutip 'tensor' operation.</p>
     -------
     bra, ket: qutip.Qobj, shape (4^SITES, 1)
         Full vector representation.
+
+    Examples
+    --------
+    &gt;&gt;&gt; N = Network(sites_nb=1)
+    &gt;&gt;&gt; self.get_state(state=2)
+    &gt;&gt;&gt; Quantum object: dims = [[2, 2], [1, 1]], shape = (4, 1), type = ket
+    Qobj data =
+    [[0.]
+     [0.]
+     [1.]
+     [0.]]
     &#34;&#34;&#34;
     binairy = format(state, &#39;b&#39;).zfill(self.sites*2)
     ket = [*binairy]
@@ -671,17 +832,78 @@ Qutip 'tensor' operation.</p>
 <span>def <span class="ident">lanczos</span></span>(<span>self, H: qutip.qobj.Qobj, iterations: int, init_state=None) ‑> tuple</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Docs</p></div>
+<div class="desc"><p>Implementation of Lanczos algorithm for Network hamiltonian.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>H</code></strong> :&ensp;<code>Qobj, shape (4^self.sites, 4^self.sites)</code>, default=<code>None</code></dt>
+<dd>Fermions network hamiltonian.</dd>
+<dt><strong><code>iterations</code></strong> :&ensp;<code>int</code>, default=<code>None</code></dt>
+<dd>Number of iterations on which perform the algorithm.</dd>
+<dt><strong><code>init_state</code></strong> :&ensp;<code>QObj, shape (4^self.sites, 1) default=random</code></dt>
+<dd>Initial quantum state to start the first iteration.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>-: tuple, shape (1, 2)
+Respectively the maximum eigenvalue and the associated eigenvector.</p>
+<h2 id="examples">Examples</h2>
+<pre><code class="language-python-repl">&gt;&gt;&gt; N = Network(sites_nb=2)
+&gt;&gt;&gt; Hamitonian = N.get_hamiltonian(model=&quot;Hubbard&quot;, U=1, t=1)
+&gt;&gt;&gt; N.lanczos(H=Hamiltonian, iterations=10)
+&gt;&gt;&gt; (2.561552779602264, Quantum object: dims = [[10], [1]], shape = (10, 1), type = ket
+Qobj data =
+[[0.43516215]
+ [0.78820544]
+ [0.43516215]
+ [0.        ]
+ [0.        ]
+ [0.        ]
+ [0.        ]
+ [0.        ]
+ [0.        ]
+ [0.        ]])
+</code></pre></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def lanczos(self, H: Qobj, iterations: int, init_state=None) -&gt; tuple:
-    &#34;&#34;&#34;Docs
+    &#34;&#34;&#34;Implementation of Lanczos algorithm for Network hamiltonian.
+
+    Parameters
+    ----------
+    H: Qobj, shape (4^self.sites, 4^self.sites), default=None
+        Fermions network hamiltonian.
+    iterations: int, default=None
+        Number of iterations on which perform the algorithm.
+    init_state: QObj, shape (4^self.sites, 1) default=random
+        Initial quantum state to start the first iteration.
+
+    Returns
+    -------
+    -: tuple, shape (1, 2)
+        Respectively the maximum eigenvalue and the associated eigenvector.
+
+    Examples
+    --------
+    &gt;&gt;&gt; N = Network(sites_nb=2)
+    &gt;&gt;&gt; Hamitonian = N.get_hamiltonian(model=&#34;Hubbard&#34;, U=1, t=1)
+    &gt;&gt;&gt; N.lanczos(H=Hamiltonian, iterations=10)
+    &gt;&gt;&gt; (2.561552779602264, Quantum object: dims = [[10], [1]], shape = (10, 1), type = ket
+    Qobj data =
+    [[0.43516215]
+     [0.78820544]
+     [0.43516215]
+     [0.        ]
+     [0.        ]
+     [0.        ]
+     [0.        ]
+     [0.        ]
+     [0.        ]
+     [0.        ]])
     &#34;&#34;&#34;
     if not init_state:
         dim = H.shape[0]
-        state = randint(dim - 1)
+        state = np.randint(dim - 1)
         init = self.get_state(state=state)
     else:
         init = init_state
@@ -736,11 +958,6 @@ Qutip 'tensor' operation.</p>
 <li><h3>Super-module</h3>
 <ul>
 <li><code><a title="qft" href="index.html">qft</a></code></li>
-</ul>
-</li>
-<li><h3><a href="#header-functions">Functions</a></h3>
-<ul class="">
-<li><code><a title="qft.main.randint" href="#qft.main.randint">randint</a></code></li>
 </ul>
 </li>
 <li><h3><a href="#header-classes">Classes</a></h3>

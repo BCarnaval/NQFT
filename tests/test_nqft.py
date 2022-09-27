@@ -1,5 +1,5 @@
-from qft import __version__
-from qft.main import Network
+from nqft import __version__
+from nqft.main import Network
 
 
 def test_version():
