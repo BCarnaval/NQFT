@@ -63,3 +63,9 @@ This library is the numeric and algorithmic core of this repository. It has been
 ### Fock Space
 
 ### Hubbard model
+
+### CDMFT
+
+### VMC
+
+### Etc.
