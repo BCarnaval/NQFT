@@ -180,7 +180,7 @@ class Network():
 
 
 if __name__ == "__main__":
-    N = Network(sites_nb=6)
+    N = Network(sites_nb=8)
     H = N.get_hamiltonian(model="Hubbard", U=1, t=1)
     print(H)
 
