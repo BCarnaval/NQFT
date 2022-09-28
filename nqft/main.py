@@ -218,7 +218,7 @@ class Network():
         """
         if not init_state:
             dim = H.shape[0]
-            state = np.randint(dim - 1)
+            state = np.random.randint(dim - 1)
             init = self.get_state(state=state)
         else:
             init = init_state
@@ -260,7 +260,5 @@ class Network():
 
 
 if __name__ == "__main__":
-    N = Network(sites_nb=2)
-    H = N.get_hamiltonian(model="Hubbard", U=1, t=1)
-    print(N.lanczos(H=H, iterations=10))
+    pass
 
