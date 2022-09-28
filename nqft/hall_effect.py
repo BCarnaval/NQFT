@@ -7,6 +7,11 @@ from matplotlib import cm
 import matplotlib.pyplot as plt
 
 
+def get_energy():
+    """Docs
+    """
+    return
+
 def dispersion(hop_amp: list, mu: float, lims: tuple, res=100) -> None:
     """Docs
     """
@@ -21,14 +26,15 @@ def dispersion(hop_amp: list, mu: float, lims: tuple, res=100) -> None:
     third = -2*t2*(np.cos(2*X) + np.cos(2*Y))
     Z = first + second + third - mu
 
-    # Access the z=0 contour line of the fermi surface
+    # Access the zero-frequency contour line of the fermi surface
     fermi_surface = plt.contourf(X, Y, Z, levels=0, cmap=cm.GnBu).collections
     x, y = fermi_surface[0].get_paths()[0].vertices.T
 
-
-    return
+    return x, y
 
 
 if __name__ == "__main__":
-    X, Y, Z = dispersion(hop_amp=[1, -0.4, 0.1], mu=0.9, lims=(-np.pi, np.pi),
-            res=100)
+    X, Y = dispersion(hop_amp=[1, 0.0, 0.0], mu=0.0, lims=(-np.pi, np.pi), res=100)
+    plt.plot(X, Y, color='k')
+    plt.show()
+
