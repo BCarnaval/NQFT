@@ -2,155 +2,223 @@
 spin-density wave.
 """
 
+import time
 import numpy as np
 from matplotlib import cm
+from functools import wraps
 import matplotlib.pyplot as plt
 from scipy.constants import e, pi
+from numpy import arange, meshgrid, sin, cos
 
 
-def build_dispersion(hop_amps: list, mu: float, lims: tuple,
-        derivative=(None, 0), res=100) -> None:
-    """Build 3D dispersion relation grid and outputs it as 2D arrays.
+def timeit(func):
+    @wraps(func)
+    def timeit_wrapper(*args, **kwargs):
+        start_time = time.perf_counter()
+        result = func(*args, **kwargs)
+        end_time = time.perf_counter()
+        total_time = end_time - start_time
+        print(f'Function {func.__name__} took {total_time:.2f} seconds')
+        return result
+    return timeit_wrapper
+
+
+@timeit
+def dE(hop_amps: list, kx: np.ndarray, ky: np.ndarray, mu: float) -> tuple:
+    """Outputs model's energy and it's derivatives.
 
     Parameters
     ----------
-    hop_amps: list, size=3, default=None
-        Hopping coefficients module (t, t', t'').
+    hop_amps: list, default=None
+        Hopping amplitudes coefficients.
+
+    kx: np.ndarray, shape=(N, N), default=None
+        kx space as a 2D array.
+
+    ky: np.ndarray, shape=(N, N), default=None
+        ky space as a 2D array.
+
     mu: float, default=None
-        NA.
-    lims: tuple, size=2, default=None
-        Wavevectors limit values.
-    derivative: tuple, size=2, default=(None, 0)
-        Specifies derivation variable &  order of derivation.
-    res: int, default=100
-        Resolution of outputed grid.
+        Some constant in dispertion relation.
 
     Returns
     -------
-    X, Y, Z: tuple
-        2D np.ndarrays representing a grid for kx, a grid for ky and
-        a grid for eigenenergies.
+    E, dEx, ddEx, dEy, ddEy, dExEy: tuple, size=6
+        Energy and it's derivatives in a tuple.
     """
-    variable, order = derivative
     t, t1, t2 = hop_amps
-    kx = np.arange(lims[0], lims[1], 1/res)
-    ky = kx
-    X, Y = np.meshgrid(kx, ky)
 
-    # Computing z component of dispertion relation
-    if not variable or order > 2:
-        first = -2*t*(np.cos(X) + np.cos(Y))
-        second = -2*t1*(np.cos(X + Y) + np.cos(X - Y))
-        third = -2*t2*(np.cos(2*X) + np.cos(2*Y))
-        if order > 2:
-            print(f"Order {order} in derivative isn't defined within "
-                   "this function.")
+    # Energy
+    a = -2*t*(cos(kx) + cos(ky))
+    b = -2*t1*(cos(kx + ky) + cos(kx - ky))
+    c = -2*t2*(cos(2*kx) + cos(2*ky))
+    E = a + b + c - mu
+
+    # Ex derivatives
+    dEx = 2*t*sin(kx) + 2*t1*(sin(kx + ky) + sin(kx - ky)) + 4*t2*sin(2*kx)
+    ddEx = 2*t*cos(kx) + 2*t1*(cos(kx + ky) + cos(kx - ky)) + 8*t2*cos(2*kx)
+
+    # Ey derivatives
+    dEy = 2*t*sin(ky) + 2*t1*(sin(kx + ky) - sin(kx - ky)) + 4*t2*sin(2*ky)
+    ddEy = 2*t*cos(ky) + 2*t1*(cos(kx + ky) + cos(kx - ky)) + 8*t2*cos(2*ky)
+
+    # Mixed derivative
+    dExEy = 2*t1*(cos(kx + ky) - cos(kx - ky))
+
+    return E, dEx, ddEx, dEy, ddEy, dExEy
+
+class Model():
+    """Model instance to determine Hall coefficient from
+    tight-binding hamiltonian.
+
+    Attributes
+    ----------
+    hop_amps: list, size=3, default=None
+        Hopping amplitude coefficients.
+
+    frequency: float, default=None
+        Frequency at which we observe the fermi surface.
+
+    eta: float, default=None
+        Lorentzian broadening module.
+
+    cste: float, default=None
+        Constant in dispertion relation.
+
+    k_lims: tuple, size=2
+        Wavevectors interval values.
+
+    resolution: int, default=100
+        Resolution of phase space (kx, ky).
+    """
+    def __init__(self, hop_amps: list, frequency: float, eta: float,
+            mu: float, V: float, cste: float, k_lims: tuple,
+            resolution=100) -> None:
+        """Initializing Model attributes to actual properties of
+        instances.
+        """
+        # Global attributes
+        self.omega = frequency
+        self.eta = eta
+        self.mu = mu
+        self.V = V
+        self.cste = cste
+        self.hops = hop_amps
+
+        # Phase space grid
+        kx = arange(k_lims[0], k_lims[1], 1/resolution)
+        self.kx, self.ky = meshgrid(kx, kx)
+
+        # Energy derivatives grids
+        dEs = dE(hop_amps, self.kx, self.ky, cste)
+        self.E, self.dEx, self.ddEx, self.dEy, self.ddEy, self.dExEy = dEs
+
+    def get_spectral_weight(self, show=False) -> np.ndarray:
+        """Ouputs the spectral weight as a 2D numpy array.
+
+        Parameters
+        ----------
+        mu: float, default=0.0
+            ADD DESCRIPTION.
+        show: bool, default=False
+            If set to True, outputs a colormesh of the spectral weight.
+
+        Returns
+        -------
+        A: np.ndarray, shape=(N, N)
+            Spectral weight.
+        """
+        # Spectral weight
+        A1 = self.omega**2 + self.E**2 + self.eta**2 + self.mu**2
+        A2 = -2*(self.omega*self.E + self.E*self.mu - self.omega*self.mu)
+        A = 1/pi*(self.eta/(A1 + A2))
+
+        if show:
+            fig = plt.figure()
+            ax = fig.add_subplot()
+            spectral = ax.pcolormesh(self.kx, self.ky, A, cmap=cm.Blues)
+            fig.colorbar(spectral)
+
+            # Graph format & style
+            ax.set_xlabel("$k_x$")
+            ax.set_ylabel("$k_y$")
+
+            min, max = self.kx[0, 0], self.kx[-1, -1]
+            ax.set_xticks(ticks=[min, 0, max], labels=["$-\pi$", "0", "$\pi$"])
+            ax.set_yticks(ticks=[min, 0, max], labels=["$-\pi$", "0", "$\pi$"])
+            plt.show()
         else:
             pass
 
-    elif variable == 'kx':
-        mu = 0 # Setting mu to 0 because it doesn't appear in any derivative
-        if order == 1:
-            first = 2*t*np.sin(X)
-            second = 2*t1*(np.sin(X + Y) + np.sin(X - Y))
-            third = 4*t2*np.sin(2*X)
+        return A
 
-        elif order == 2:
-            first = 2*t*np.cos(X)
-            second = 2*t1*(np.cos(X + Y) + np.cos(X - Y))
-            third = 8*t2*np.cos(2*X)
+    def get_mu(self) -> float:
+        """Docs
+        """
+        return
 
-    elif variable == 'ky':
-        if order == 1:
-            first = 2*t*np.sin(Y)
-            second = 2*t1*(np.sin(X + Y) - np.sin(X - Y))
-            third = 4*t2*np.sin(2*Y)
+    def sigma_ii(self, variable: str) -> np.ndarray:
+        """Computing longitudinal conductivity at zero temperature
+        in the zero-frequency limit when interband transitions can be
+        neglected.
 
-        elif order == 2:
-            first = 2*t*np.cos(Y)
-            second = 2*t1*(np.cos(X + Y) + np.cos(X - Y))
-            third = 8*t2*np.cos(2*Y)
+        Parameters
+        ----------
+        variable: str, default=None
+            Axis on which compute conductivity.
 
-    Z = first + second + third - mu
+        Returns
+        -------
+        conductivity: float
+        """
+        coeff = e**2*pi/self.V
+        A = self.get_spectral_weight()
+        if variable == 'x':
+            conductivity = coeff*self.dEx**2*A**2
+        elif variable == 'y':
+            conductivity = coeff*self.dEy**2*A**2
 
-    return X, Y, Z
+        return conductivity.sum()
 
-def spectral_weight(omega: float, eta: float, coords: tuple,
-                    show=False) -> None:
-    """Outputs the spectral_weight as a 2D numpy array.
+    def sigma_xy(self) -> np.ndarray:
+        """Computing transversal conductivity at zero temperature
+        in the zero-frequency limit when interband transitions can be
+        neglected.
 
-    Parameters
-    ----------
-    omega: float, default=None
-        Frequency of the system.
-    eta: float, default=None
-        The lorentzian broadening module.
-    coords: tuple, size=3, default=None
-        3D grid of the eigenenergies as a function of wavevectors (kx, ky).
-    show: bool, default=False
-        If True, outputs a colormesh of the spectral weight.
+        Returns
+        -------
+        conductivity: float
+        """
+        coeff = e**3*pi**2/(3*self.V)
+        A = self.get_spectral_weight()
 
-    Returns
-    -------
-    A: np.ndarray, shape (2*lims[0]*res, 2*lims[1]*res)
-        Spectral weight at frequency 'omega'.
+        c1 = -2*self.dEx**2*self.dExEy
+        c2 = self.dEx**2*self.ddEy
+        c3 = self.dEy**2*self.ddEx
+        conductivity = coeff*(c1 + c2 + c3)*A**3
 
-    Examples
-    --------
-    >>> E = build_dispersion([1, 0, 0], 0.0, (-np.pi, np.pi), res=10)
-    >>> A = spectral_weight(0.0, 0.05, E)
-    >>> [[0.00099456 0.00099955 0.00101469 ... 0.00103539 0.00101141 0.00099801]
-    [0.00099955 0.00100457 0.00101982 ... 0.00104068 0.00101653 0.00100302]
-    [0.00101469 0.00101982 0.00103542 ... 0.00105677 0.00103205 0.00101824]
-                                      ...
-    [0.00103539 0.00104068 0.00105677 ... 0.00107877 0.00105329 0.00103905]
-    [0.00101141 0.00101653 0.00103205 ... 0.00105329 0.00102869 0.00101495]
-    [0.00099801 0.00100302 0.00101824 ... 0.00103905 0.00101495 0.00100148]]
-    """
-    X, Y, E = coords
-    A = 1/pi*(eta/((omega - E)**2 + eta**2))
-
-    if show:
-        fig = plt.figure()
-        ax = fig.add_subplot()
-        spectral = ax.pcolormesh(X, Y, A, cmap=cm.Blues)
-
-        # Graph format & style
-        ax.set_xlabel("$k_x$")
-        ax.set_ylabel("$k_y$")
-
-        ax.set_xticks(ticks=[-pi, 0, pi], labels=["$-\pi$", "0", "$\pi$"])
-        ax.set_yticks(ticks=[-pi, 0, pi], labels=["$-\pi$", "0", "$\pi$"])
-
-        fig.colorbar(spectral)
-        plt.show()
-    else:
-        pass
-
-    return A
-
-def sigma_xx(V: float) -> float:
-    """Computing longitudinal conductivity at zero temperature
-    in the zero-frequency limit when interband transitions can be
-    neglected.
-    """
-    coeff = e**2*pi/V
-
-    return
-
-def sigma_xy(V: float) -> float:
-    """Computing transversal conductivity at zero temperature
-    in the zero-frequency limit when interband transitions can be
-    neglected.
-    """
-    coeff = e**3*pi**2/(3*V)
-
-    return
-
+        return conductivity.sum()
 
 if __name__ == "__main__":
-    X, Y, E = build_dispersion(hop_amps=[1, 0.0, 0.0], mu=0.0, lims=(-pi,
-        pi), derivative=('kx', 3), res=100)
+    N = Model(
+            hop_amps=[1, 0.0, 0.0],
+            frequency=0.0,
+            eta=0.05,
+            mu=0.0,
+            V=1.0,
+            cste=0.0,
+            k_lims=(-pi, pi),
+            resolution=1000)
 
-    A = spectral_weight(omega=0, eta=0.05, coords=(X, Y, E), show=True)
+    # Spectral weight
+    N.get_spectral_weight(show=True)
+
+    # Conductivity
+    sigma_xx = N.sigma_ii('x')
+    sigma_yy = N.sigma_ii('y')
+    sigma_xy = N.sigma_xy()
+
+    # Hall coefficient
+    n_H = N.V*sigma_xx*sigma_yy/(sigma_xy*e)
+    print(n_H)
 
