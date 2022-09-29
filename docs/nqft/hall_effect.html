@@ -1,0 +1,720 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.10.0" />
+<title>nqft.hall_effect API documentation</title>
+<meta name="description" content="Hall effect in cuprates with an incommensurate collinear
+spin-density wave." />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>nqft.hall_effect</code></h1>
+</header>
+<section id="section-intro">
+<p>Hall effect in cuprates with an incommensurate collinear
+spin-density wave.</p>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">&#34;&#34;&#34;Hall effect in cuprates with an incommensurate collinear
+spin-density wave.
+&#34;&#34;&#34;
+
+import time
+import numpy as np
+from matplotlib import cm
+from functools import wraps
+import matplotlib.pyplot as plt
+from scipy.constants import e, pi
+from numpy import arange, meshgrid, sin, cos
+
+
+def timeit(func):
+    @wraps(func)
+    def timeit_wrapper(*args, **kwargs):
+        start_time = time.perf_counter()
+        result = func(*args, **kwargs)
+        end_time = time.perf_counter()
+        total_time = end_time - start_time
+        print(f&#39;Function {func.__name__} took {total_time:.2f} seconds&#39;)
+        return result
+    return timeit_wrapper
+
+
+@timeit
+def dE(hop_amps: list, kx: np.ndarray, ky: np.ndarray, mu: float) -&gt; tuple:
+    &#34;&#34;&#34;Outputs model&#39;s energy and it&#39;s derivatives.
+
+    Parameters
+    ----------
+    hop_amps: list, default=None
+        Hopping amplitudes coefficients.
+
+    kx: np.ndarray, shape=(N, N), default=None
+        kx space as a 2D array.
+
+    ky: np.ndarray, shape=(N, N), default=None
+        ky space as a 2D array.
+
+    mu: float, default=None
+        Some constant in dispertion relation.
+
+    Returns
+    -------
+    E, dEx, ddEx, dEy, ddEy, dExEy: tuple, size=6
+        Energy and it&#39;s derivatives in a tuple.
+    &#34;&#34;&#34;
+    t, t1, t2 = hop_amps
+
+    # Energy
+    a = -2*t*(cos(kx) + cos(ky))
+    b = -2*t1*(cos(kx + ky) + cos(kx - ky))
+    c = -2*t2*(cos(2*kx) + cos(2*ky))
+    E = a + b + c - mu
+
+    # Ex derivatives
+    dEx = 2*t*sin(kx) + 2*t1*(sin(kx + ky) + sin(kx - ky)) + 4*t2*sin(2*kx)
+    ddEx = 2*t*cos(kx) + 2*t1*(cos(kx + ky) + cos(kx - ky)) + 8*t2*cos(2*kx)
+
+    # Ey derivatives
+    dEy = 2*t*sin(ky) + 2*t1*(sin(kx + ky) - sin(kx - ky)) + 4*t2*sin(2*ky)
+    ddEy = 2*t*cos(ky) + 2*t1*(cos(kx + ky) + cos(kx - ky)) + 8*t2*cos(2*ky)
+
+    # Mixed derivative
+    dExEy = 2*t1*(cos(kx + ky) - cos(kx - ky))
+
+    return E, dEx, ddEx, dEy, ddEy, dExEy
+
+class Model():
+    &#34;&#34;&#34;Model instance to determine Hall coefficient from
+    tight-binding hamiltonian.
+
+    Attributes
+    ----------
+    hop_amps: list, size=3, default=None
+        Hopping amplitude coefficients.
+
+    frequency: float, default=None
+        Frequency at which we observe the fermi surface.
+
+    eta: float, default=None
+        Lorentzian broadening module.
+
+    cste: float, default=None
+        Constant in dispertion relation.
+
+    k_lims: tuple, size=2
+        Wavevectors interval values.
+
+    resolution: int, default=100
+        Resolution of phase space (kx, ky).
+    &#34;&#34;&#34;
+    def __init__(self, hop_amps: list, frequency: float, eta: float,
+            mu: float, V: float, cste: float, k_lims: tuple,
+            resolution=100) -&gt; None:
+        &#34;&#34;&#34;Initializing Model attributes to actual properties of
+        instances.
+        &#34;&#34;&#34;
+        # Global attributes
+        self.omega = frequency
+        self.eta = eta
+        self.mu = mu
+        self.V = V
+        self.cste = cste
+        self.hops = hop_amps
+
+        # Phase space grid
+        kx = arange(k_lims[0], k_lims[1], 1/resolution)
+        self.kx, self.ky = meshgrid(kx, kx)
+
+        # Energy derivatives grids
+        dEs = dE(hop_amps, self.kx, self.ky, cste)
+        self.E, self.dEx, self.ddEx, self.dEy, self.ddEy, self.dExEy = dEs
+
+    def get_spectral_weight(self, show=False) -&gt; np.ndarray:
+        &#34;&#34;&#34;Ouputs the spectral weight as a 2D numpy array.
+
+        Parameters
+        ----------
+        mu: float, default=0.0
+            ADD DESCRIPTION.
+        show: bool, default=False
+            If set to True, outputs a colormesh of the spectral weight.
+
+        Returns
+        -------
+        A: np.ndarray, shape=(N, N)
+            Spectral weight.
+        &#34;&#34;&#34;
+        # Spectral weight
+        A1 = self.omega**2 + self.E**2 + self.eta**2 + self.mu**2
+        A2 = -2*(self.omega*self.E + self.E*self.mu - self.omega*self.mu)
+        A = 1/pi*(self.eta/(A1 + A2))
+
+        if show:
+            fig = plt.figure()
+            ax = fig.add_subplot()
+            spectral = ax.pcolormesh(self.kx, self.ky, A, cmap=cm.Blues)
+            fig.colorbar(spectral)
+
+            # Graph format &amp; style
+            ax.set_xlabel(&#34;$k_x$&#34;)
+            ax.set_ylabel(&#34;$k_y$&#34;)
+
+            min, max = self.kx[0, 0], self.kx[-1, -1]
+            ax.set_xticks(ticks=[min, 0, max], labels=[&#34;$-\pi$&#34;, &#34;0&#34;, &#34;$\pi$&#34;])
+            ax.set_yticks(ticks=[min, 0, max], labels=[&#34;$-\pi$&#34;, &#34;0&#34;, &#34;$\pi$&#34;])
+            plt.show()
+        else:
+            pass
+
+        return A
+
+    def get_mu(self) -&gt; float:
+        &#34;&#34;&#34;Docs
+        &#34;&#34;&#34;
+        return
+
+    def sigma_ii(self, variable: str) -&gt; np.ndarray:
+        &#34;&#34;&#34;Computing longitudinal conductivity at zero temperature
+        in the zero-frequency limit when interband transitions can be
+        neglected.
+
+        Parameters
+        ----------
+        variable: str, default=None
+            Axis on which compute conductivity.
+
+        Returns
+        -------
+        conductivity: float
+        &#34;&#34;&#34;
+        coeff = e**2*pi/self.V
+        A = self.get_spectral_weight()
+        if variable == &#39;x&#39;:
+            conductivity = coeff*self.dEx**2*A**2
+        elif variable == &#39;y&#39;:
+            conductivity = coeff*self.dEy**2*A**2
+
+        return conductivity.sum()
+
+    def sigma_xy(self) -&gt; np.ndarray:
+        &#34;&#34;&#34;Computing transversal conductivity at zero temperature
+        in the zero-frequency limit when interband transitions can be
+        neglected.
+
+        Returns
+        -------
+        conductivity: float
+        &#34;&#34;&#34;
+        coeff = e**3*pi**2/(3*self.V)
+        A = self.get_spectral_weight()
+
+        c1 = -2*self.dEx**2*self.dExEy
+        c2 = self.dEx**2*self.ddEy
+        c3 = self.dEy**2*self.ddEx
+        conductivity = coeff*(c1 + c2 + c3)*A**3
+
+        return conductivity.sum()
+
+if __name__ == &#34;__main__&#34;:
+    N = Model(
+            hop_amps=[1, 0.0, 0.0],
+            frequency=0.0,
+            eta=0.05,
+            mu=0.0,
+            V=1.0,
+            cste=0.0,
+            k_lims=(-pi, pi),
+            resolution=100)
+
+    # Spectral weight
+    N.get_spectral_weight(show=True)
+
+    # Conductivity
+    sigma_xx = N.sigma_ii(&#39;x&#39;)
+    sigma_yy = N.sigma_ii(&#39;y&#39;)
+    sigma_xy = N.sigma_xy()
+
+    # Hall coefficient
+    n_H = N.V*sigma_xx*sigma_yy/(sigma_xy*e)</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="nqft.hall_effect.dE"><code class="name flex">
+<span>def <span class="ident">dE</span></span>(<span>hop_amps: list, kx: numpy.ndarray, ky: numpy.ndarray, mu: float) ‑> tuple</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Outputs model's energy and it's derivatives.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>hop_amps</code></strong> :&ensp;<code>list</code>, default=<code>None</code></dt>
+<dd>Hopping amplitudes coefficients.</dd>
+<dt><strong><code>kx</code></strong> :&ensp;<code>np.ndarray, shape=(N, N)</code>, default=<code>None</code></dt>
+<dd>kx space as a 2D array.</dd>
+<dt><strong><code>ky</code></strong> :&ensp;<code>np.ndarray, shape=(N, N)</code>, default=<code>None</code></dt>
+<dd>ky space as a 2D array.</dd>
+<dt><strong><code>mu</code></strong> :&ensp;<code>float</code>, default=<code>None</code></dt>
+<dd>Some constant in dispertion relation.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>E</code></strong>, <strong><code>dEx</code></strong>, <strong><code>ddEx</code></strong>, <strong><code>dEy</code></strong>, <strong><code>ddEy</code></strong>, <strong><code>dExEy</code></strong> :&ensp;<code>tuple, size=6</code></dt>
+<dd>Energy and it's derivatives in a tuple.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@timeit
+def dE(hop_amps: list, kx: np.ndarray, ky: np.ndarray, mu: float) -&gt; tuple:
+    &#34;&#34;&#34;Outputs model&#39;s energy and it&#39;s derivatives.
+
+    Parameters
+    ----------
+    hop_amps: list, default=None
+        Hopping amplitudes coefficients.
+
+    kx: np.ndarray, shape=(N, N), default=None
+        kx space as a 2D array.
+
+    ky: np.ndarray, shape=(N, N), default=None
+        ky space as a 2D array.
+
+    mu: float, default=None
+        Some constant in dispertion relation.
+
+    Returns
+    -------
+    E, dEx, ddEx, dEy, ddEy, dExEy: tuple, size=6
+        Energy and it&#39;s derivatives in a tuple.
+    &#34;&#34;&#34;
+    t, t1, t2 = hop_amps
+
+    # Energy
+    a = -2*t*(cos(kx) + cos(ky))
+    b = -2*t1*(cos(kx + ky) + cos(kx - ky))
+    c = -2*t2*(cos(2*kx) + cos(2*ky))
+    E = a + b + c - mu
+
+    # Ex derivatives
+    dEx = 2*t*sin(kx) + 2*t1*(sin(kx + ky) + sin(kx - ky)) + 4*t2*sin(2*kx)
+    ddEx = 2*t*cos(kx) + 2*t1*(cos(kx + ky) + cos(kx - ky)) + 8*t2*cos(2*kx)
+
+    # Ey derivatives
+    dEy = 2*t*sin(ky) + 2*t1*(sin(kx + ky) - sin(kx - ky)) + 4*t2*sin(2*ky)
+    ddEy = 2*t*cos(ky) + 2*t1*(cos(kx + ky) + cos(kx - ky)) + 8*t2*cos(2*ky)
+
+    # Mixed derivative
+    dExEy = 2*t1*(cos(kx + ky) - cos(kx - ky))
+
+    return E, dEx, ddEx, dEy, ddEy, dExEy</code></pre>
+</details>
+</dd>
+<dt id="nqft.hall_effect.timeit"><code class="name flex">
+<span>def <span class="ident">timeit</span></span>(<span>func)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def timeit(func):
+    @wraps(func)
+    def timeit_wrapper(*args, **kwargs):
+        start_time = time.perf_counter()
+        result = func(*args, **kwargs)
+        end_time = time.perf_counter()
+        total_time = end_time - start_time
+        print(f&#39;Function {func.__name__} took {total_time:.2f} seconds&#39;)
+        return result
+    return timeit_wrapper</code></pre>
+</details>
+</dd>
+</dl>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="nqft.hall_effect.Model"><code class="flex name class">
+<span>class <span class="ident">Model</span></span>
+<span>(</span><span>hop_amps: list, frequency: float, eta: float, mu: float, V: float, cste: float, k_lims: tuple, resolution=100)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Model instance to determine Hall coefficient from
+tight-binding hamiltonian.</p>
+<h2 id="attributes">Attributes</h2>
+<dl>
+<dt><strong><code>hop_amps</code></strong> :&ensp;<code>list, size=3</code>, default=<code>None</code></dt>
+<dd>Hopping amplitude coefficients.</dd>
+<dt><strong><code>frequency</code></strong> :&ensp;<code>float</code>, default=<code>None</code></dt>
+<dd>Frequency at which we observe the fermi surface.</dd>
+<dt><strong><code>eta</code></strong> :&ensp;<code>float</code>, default=<code>None</code></dt>
+<dd>Lorentzian broadening module.</dd>
+<dt><strong><code>cste</code></strong> :&ensp;<code>float</code>, default=<code>None</code></dt>
+<dd>Constant in dispertion relation.</dd>
+<dt><strong><code>k_lims</code></strong> :&ensp;<code>tuple, size=2</code></dt>
+<dd>Wavevectors interval values.</dd>
+<dt><strong><code>resolution</code></strong> :&ensp;<code>int</code>, default=<code>100</code></dt>
+<dd>Resolution of phase space (kx, ky).</dd>
+</dl>
+<p>Initializing Model attributes to actual properties of
+instances.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Model():
+    &#34;&#34;&#34;Model instance to determine Hall coefficient from
+    tight-binding hamiltonian.
+
+    Attributes
+    ----------
+    hop_amps: list, size=3, default=None
+        Hopping amplitude coefficients.
+
+    frequency: float, default=None
+        Frequency at which we observe the fermi surface.
+
+    eta: float, default=None
+        Lorentzian broadening module.
+
+    cste: float, default=None
+        Constant in dispertion relation.
+
+    k_lims: tuple, size=2
+        Wavevectors interval values.
+
+    resolution: int, default=100
+        Resolution of phase space (kx, ky).
+    &#34;&#34;&#34;
+    def __init__(self, hop_amps: list, frequency: float, eta: float,
+            mu: float, V: float, cste: float, k_lims: tuple,
+            resolution=100) -&gt; None:
+        &#34;&#34;&#34;Initializing Model attributes to actual properties of
+        instances.
+        &#34;&#34;&#34;
+        # Global attributes
+        self.omega = frequency
+        self.eta = eta
+        self.mu = mu
+        self.V = V
+        self.cste = cste
+        self.hops = hop_amps
+
+        # Phase space grid
+        kx = arange(k_lims[0], k_lims[1], 1/resolution)
+        self.kx, self.ky = meshgrid(kx, kx)
+
+        # Energy derivatives grids
+        dEs = dE(hop_amps, self.kx, self.ky, cste)
+        self.E, self.dEx, self.ddEx, self.dEy, self.ddEy, self.dExEy = dEs
+
+    def get_spectral_weight(self, show=False) -&gt; np.ndarray:
+        &#34;&#34;&#34;Ouputs the spectral weight as a 2D numpy array.
+
+        Parameters
+        ----------
+        mu: float, default=0.0
+            ADD DESCRIPTION.
+        show: bool, default=False
+            If set to True, outputs a colormesh of the spectral weight.
+
+        Returns
+        -------
+        A: np.ndarray, shape=(N, N)
+            Spectral weight.
+        &#34;&#34;&#34;
+        # Spectral weight
+        A1 = self.omega**2 + self.E**2 + self.eta**2 + self.mu**2
+        A2 = -2*(self.omega*self.E + self.E*self.mu - self.omega*self.mu)
+        A = 1/pi*(self.eta/(A1 + A2))
+
+        if show:
+            fig = plt.figure()
+            ax = fig.add_subplot()
+            spectral = ax.pcolormesh(self.kx, self.ky, A, cmap=cm.Blues)
+            fig.colorbar(spectral)
+
+            # Graph format &amp; style
+            ax.set_xlabel(&#34;$k_x$&#34;)
+            ax.set_ylabel(&#34;$k_y$&#34;)
+
+            min, max = self.kx[0, 0], self.kx[-1, -1]
+            ax.set_xticks(ticks=[min, 0, max], labels=[&#34;$-\pi$&#34;, &#34;0&#34;, &#34;$\pi$&#34;])
+            ax.set_yticks(ticks=[min, 0, max], labels=[&#34;$-\pi$&#34;, &#34;0&#34;, &#34;$\pi$&#34;])
+            plt.show()
+        else:
+            pass
+
+        return A
+
+    def get_mu(self) -&gt; float:
+        &#34;&#34;&#34;Docs
+        &#34;&#34;&#34;
+        return
+
+    def sigma_ii(self, variable: str) -&gt; np.ndarray:
+        &#34;&#34;&#34;Computing longitudinal conductivity at zero temperature
+        in the zero-frequency limit when interband transitions can be
+        neglected.
+
+        Parameters
+        ----------
+        variable: str, default=None
+            Axis on which compute conductivity.
+
+        Returns
+        -------
+        conductivity: float
+        &#34;&#34;&#34;
+        coeff = e**2*pi/self.V
+        A = self.get_spectral_weight()
+        if variable == &#39;x&#39;:
+            conductivity = coeff*self.dEx**2*A**2
+        elif variable == &#39;y&#39;:
+            conductivity = coeff*self.dEy**2*A**2
+
+        return conductivity.sum()
+
+    def sigma_xy(self) -&gt; np.ndarray:
+        &#34;&#34;&#34;Computing transversal conductivity at zero temperature
+        in the zero-frequency limit when interband transitions can be
+        neglected.
+
+        Returns
+        -------
+        conductivity: float
+        &#34;&#34;&#34;
+        coeff = e**3*pi**2/(3*self.V)
+        A = self.get_spectral_weight()
+
+        c1 = -2*self.dEx**2*self.dExEy
+        c2 = self.dEx**2*self.ddEy
+        c3 = self.dEy**2*self.ddEx
+        conductivity = coeff*(c1 + c2 + c3)*A**3
+
+        return conductivity.sum()</code></pre>
+</details>
+<h3>Methods</h3>
+<dl>
+<dt id="nqft.hall_effect.Model.get_mu"><code class="name flex">
+<span>def <span class="ident">get_mu</span></span>(<span>self) ‑> float</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Docs</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_mu(self) -&gt; float:
+    &#34;&#34;&#34;Docs
+    &#34;&#34;&#34;
+    return</code></pre>
+</details>
+</dd>
+<dt id="nqft.hall_effect.Model.get_spectral_weight"><code class="name flex">
+<span>def <span class="ident">get_spectral_weight</span></span>(<span>self, show=False) ‑> numpy.ndarray</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Ouputs the spectral weight as a 2D numpy array.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>mu</code></strong> :&ensp;<code>float</code>, default=<code>0.0</code></dt>
+<dd>ADD DESCRIPTION.</dd>
+<dt><strong><code>show</code></strong> :&ensp;<code>bool</code>, default=<code>False</code></dt>
+<dd>If set to True, outputs a colormesh of the spectral weight.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>A</code></strong> :&ensp;<code>np.ndarray, shape=(N, N)</code></dt>
+<dd>Spectral weight.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_spectral_weight(self, show=False) -&gt; np.ndarray:
+    &#34;&#34;&#34;Ouputs the spectral weight as a 2D numpy array.
+
+    Parameters
+    ----------
+    mu: float, default=0.0
+        ADD DESCRIPTION.
+    show: bool, default=False
+        If set to True, outputs a colormesh of the spectral weight.
+
+    Returns
+    -------
+    A: np.ndarray, shape=(N, N)
+        Spectral weight.
+    &#34;&#34;&#34;
+    # Spectral weight
+    A1 = self.omega**2 + self.E**2 + self.eta**2 + self.mu**2
+    A2 = -2*(self.omega*self.E + self.E*self.mu - self.omega*self.mu)
+    A = 1/pi*(self.eta/(A1 + A2))
+
+    if show:
+        fig = plt.figure()
+        ax = fig.add_subplot()
+        spectral = ax.pcolormesh(self.kx, self.ky, A, cmap=cm.Blues)
+        fig.colorbar(spectral)
+
+        # Graph format &amp; style
+        ax.set_xlabel(&#34;$k_x$&#34;)
+        ax.set_ylabel(&#34;$k_y$&#34;)
+
+        min, max = self.kx[0, 0], self.kx[-1, -1]
+        ax.set_xticks(ticks=[min, 0, max], labels=[&#34;$-\pi$&#34;, &#34;0&#34;, &#34;$\pi$&#34;])
+        ax.set_yticks(ticks=[min, 0, max], labels=[&#34;$-\pi$&#34;, &#34;0&#34;, &#34;$\pi$&#34;])
+        plt.show()
+    else:
+        pass
+
+    return A</code></pre>
+</details>
+</dd>
+<dt id="nqft.hall_effect.Model.sigma_ii"><code class="name flex">
+<span>def <span class="ident">sigma_ii</span></span>(<span>self, variable: str) ‑> numpy.ndarray</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Computing longitudinal conductivity at zero temperature
+in the zero-frequency limit when interband transitions can be
+neglected.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>variable</code></strong> :&ensp;<code>str</code>, default=<code>None</code></dt>
+<dd>Axis on which compute conductivity.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>conductivity</code></strong> :&ensp;<code>float</code></dt>
+<dd>&nbsp;</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def sigma_ii(self, variable: str) -&gt; np.ndarray:
+    &#34;&#34;&#34;Computing longitudinal conductivity at zero temperature
+    in the zero-frequency limit when interband transitions can be
+    neglected.
+
+    Parameters
+    ----------
+    variable: str, default=None
+        Axis on which compute conductivity.
+
+    Returns
+    -------
+    conductivity: float
+    &#34;&#34;&#34;
+    coeff = e**2*pi/self.V
+    A = self.get_spectral_weight()
+    if variable == &#39;x&#39;:
+        conductivity = coeff*self.dEx**2*A**2
+    elif variable == &#39;y&#39;:
+        conductivity = coeff*self.dEy**2*A**2
+
+    return conductivity.sum()</code></pre>
+</details>
+</dd>
+<dt id="nqft.hall_effect.Model.sigma_xy"><code class="name flex">
+<span>def <span class="ident">sigma_xy</span></span>(<span>self) ‑> numpy.ndarray</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Computing transversal conductivity at zero temperature
+in the zero-frequency limit when interband transitions can be
+neglected.</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>conductivity</code></strong> :&ensp;<code>float</code></dt>
+<dd>&nbsp;</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def sigma_xy(self) -&gt; np.ndarray:
+    &#34;&#34;&#34;Computing transversal conductivity at zero temperature
+    in the zero-frequency limit when interband transitions can be
+    neglected.
+
+    Returns
+    -------
+    conductivity: float
+    &#34;&#34;&#34;
+    coeff = e**3*pi**2/(3*self.V)
+    A = self.get_spectral_weight()
+
+    c1 = -2*self.dEx**2*self.dExEy
+    c2 = self.dEx**2*self.ddEy
+    c3 = self.dEy**2*self.ddEx
+    conductivity = coeff*(c1 + c2 + c3)*A**3
+
+    return conductivity.sum()</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="nqft" href="index.html">nqft</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="nqft.hall_effect.dE" href="#nqft.hall_effect.dE">dE</a></code></li>
+<li><code><a title="nqft.hall_effect.timeit" href="#nqft.hall_effect.timeit">timeit</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="nqft.hall_effect.Model" href="#nqft.hall_effect.Model">Model</a></code></h4>
+<ul class="">
+<li><code><a title="nqft.hall_effect.Model.get_mu" href="#nqft.hall_effect.Model.get_mu">get_mu</a></code></li>
+<li><code><a title="nqft.hall_effect.Model.get_spectral_weight" href="#nqft.hall_effect.Model.get_spectral_weight">get_spectral_weight</a></code></li>
+<li><code><a title="nqft.hall_effect.Model.sigma_ii" href="#nqft.hall_effect.Model.sigma_ii">sigma_ii</a></code></li>
+<li><code><a title="nqft.hall_effect.Model.sigma_xy" href="#nqft.hall_effect.Model.sigma_xy">sigma_xy</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.10.0</a>.</p>
+</footer>
+</body>
+</html>

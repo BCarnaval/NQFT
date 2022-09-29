@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.10.0" />
-<title>qft.main API documentation</title>
+<title>nqft.main API documentation</title>
 <meta name="description" content="This module tests Qutip python library functions, objects and
 attributes in the context of Hubbard model using square fermion
 networks." />
@@ -21,7 +21,7 @@ networks." />
 <main>
 <article id="content">
 <header>
-<h1 class="title">Module <code>qft.main</code></h1>
+<h1 class="title">Module <code>nqft.main</code></h1>
 </header>
 <section id="section-intro">
 <p>This module tests Qutip python library functions, objects and
@@ -251,7 +251,7 @@ class Network():
         &#34;&#34;&#34;
         if not init_state:
             dim = H.shape[0]
-            state = np.randint(dim - 1)
+            state = np.random.randint(dim - 1)
             init = self.get_state(state=state)
         else:
             init = init_state
@@ -293,9 +293,7 @@ class Network():
 
 
 if __name__ == &#34;__main__&#34;:
-    N = Network(sites_nb=2)
-    H = N.get_hamiltonian(model=&#34;Hubbard&#34;, U=1, t=1)
-    print(N.lanczos(H=H, iterations=10))</code></pre>
+    pass</code></pre>
 </details>
 </section>
 <section>
@@ -307,7 +305,7 @@ if __name__ == &#34;__main__&#34;:
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
 <dl>
-<dt id="qft.main.Network"><code class="flex name class">
+<dt id="nqft.main.Network"><code class="flex name class">
 <span>class <span class="ident">Network</span></span>
 <span>(</span><span>sites_nb: int)</span>
 </code></dt>
@@ -542,7 +540,7 @@ the other ones.</p></div>
         &#34;&#34;&#34;
         if not init_state:
             dim = H.shape[0]
-            state = np.randint(dim - 1)
+            state = np.random.randint(dim - 1)
             init = self.get_state(state=state)
         else:
             init = init_state
@@ -584,7 +582,7 @@ the other ones.</p></div>
 </details>
 <h3>Methods</h3>
 <dl>
-<dt id="qft.main.Network.get_e"><code class="name flex">
+<dt id="nqft.main.Network.get_e"><code class="name flex">
 <span>def <span class="ident">get_e</span></span>(<span>self, H: qutip.qobj.Qobj, states: list) ‑> float</span>
 </code></dt>
 <dd>
@@ -646,7 +644,7 @@ given kets on which perform projection.</p>
     return E.tr()</code></pre>
 </details>
 </dd>
-<dt id="qft.main.Network.get_hamiltonian"><code class="name flex">
+<dt id="nqft.main.Network.get_hamiltonian"><code class="name flex">
 <span>def <span class="ident">get_hamiltonian</span></span>(<span>self, model: str, U: int, **kwargs) ‑> qutip.qobj.Qobj</span>
 </code></dt>
 <dd>
@@ -754,7 +752,7 @@ Qobj data =
     return H</code></pre>
 </details>
 </dd>
-<dt id="qft.main.Network.get_state"><code class="name flex">
+<dt id="nqft.main.Network.get_state"><code class="name flex">
 <span>def <span class="ident">get_state</span></span>(<span>self, state: int, type='ket') ‑> qutip.qobj.Qobj</span>
 </code></dt>
 <dd>
@@ -828,7 +826,7 @@ Qobj data =
     return vec.dag() if type == &#34;bra&#34; else vec</code></pre>
 </details>
 </dd>
-<dt id="qft.main.Network.lanczos"><code class="name flex">
+<dt id="nqft.main.Network.lanczos"><code class="name flex">
 <span>def <span class="ident">lanczos</span></span>(<span>self, H: qutip.qobj.Qobj, iterations: int, init_state=None) ‑> tuple</span>
 </code></dt>
 <dd>
@@ -903,7 +901,7 @@ Qobj data =
     &#34;&#34;&#34;
     if not init_state:
         dim = H.shape[0]
-        state = np.randint(dim - 1)
+        state = np.random.randint(dim - 1)
         init = self.get_state(state=state)
     else:
         init = init_state
@@ -957,18 +955,18 @@ Qobj data =
 <ul id="index">
 <li><h3>Super-module</h3>
 <ul>
-<li><code><a title="qft" href="index.html">qft</a></code></li>
+<li><code><a title="nqft" href="index.html">nqft</a></code></li>
 </ul>
 </li>
 <li><h3><a href="#header-classes">Classes</a></h3>
 <ul>
 <li>
-<h4><code><a title="qft.main.Network" href="#qft.main.Network">Network</a></code></h4>
+<h4><code><a title="nqft.main.Network" href="#nqft.main.Network">Network</a></code></h4>
 <ul class="">
-<li><code><a title="qft.main.Network.get_e" href="#qft.main.Network.get_e">get_e</a></code></li>
-<li><code><a title="qft.main.Network.get_hamiltonian" href="#qft.main.Network.get_hamiltonian">get_hamiltonian</a></code></li>
-<li><code><a title="qft.main.Network.get_state" href="#qft.main.Network.get_state">get_state</a></code></li>
-<li><code><a title="qft.main.Network.lanczos" href="#qft.main.Network.lanczos">lanczos</a></code></li>
+<li><code><a title="nqft.main.Network.get_e" href="#nqft.main.Network.get_e">get_e</a></code></li>
+<li><code><a title="nqft.main.Network.get_hamiltonian" href="#nqft.main.Network.get_hamiltonian">get_hamiltonian</a></code></li>
+<li><code><a title="nqft.main.Network.get_state" href="#nqft.main.Network.get_state">get_state</a></code></li>
+<li><code><a title="nqft.main.Network.lanczos" href="#nqft.main.Network.lanczos">lanczos</a></code></li>
 </ul>
 </li>
 </ul>
