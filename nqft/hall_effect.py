@@ -208,7 +208,7 @@ if __name__ == "__main__":
             V=1.0,
             cste=0.0,
             k_lims=(-pi, pi),
-            resolution=1000)
+            resolution=100)
 
     # Spectral weight
     N.get_spectral_weight(show=True)
@@ -220,5 +220,4 @@ if __name__ == "__main__":
 
     # Hall coefficient
     n_H = N.V*sigma_xx*sigma_yy/(sigma_xy*e)
-    print(n_H)
 
