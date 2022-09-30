@@ -1,5 +1,5 @@
 from nqft import __version__
-from nqft.main import Network
+from nqft.hamitonian.hamitonian import Network
 
 
 def test_version():

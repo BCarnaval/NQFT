@@ -8,6 +8,7 @@ from matplotlib import cm
 from functools import wraps
 import matplotlib.pyplot as plt
 from scipy.constants import e, pi
+import matplotlib.animation as animation
 from numpy import arange, meshgrid, sin, cos
 
 
@@ -24,7 +25,7 @@ def timeit(func):
 
 
 @timeit
-def dE(hop_amps: list, kx: np.ndarray, ky: np.ndarray, mu: float) -> tuple:
+def dE(hop_amps: list, kx: np.ndarray, ky: np.ndarray) -> tuple:
     """Outputs model's energy and it's derivatives.
 
     Parameters
@@ -38,8 +39,9 @@ def dE(hop_amps: list, kx: np.ndarray, ky: np.ndarray, mu: float) -> tuple:
     ky: np.ndarray, shape=(N, N), default=None
         ky space as a 2D array.
 
-    mu: float, default=None
-        Some constant in dispertion relation.
+    raw: bool, default=True
+        If set to False, the function computes all first
+        and second derivatives.
 
     Returns
     -------
@@ -52,7 +54,7 @@ def dE(hop_amps: list, kx: np.ndarray, ky: np.ndarray, mu: float) -> tuple:
     a = -2*t*(cos(kx) + cos(ky))
     b = -2*t1*(cos(kx + ky) + cos(kx - ky))
     c = -2*t2*(cos(2*kx) + cos(2*ky))
-    E = a + b + c - mu
+    E = a + b + c
 
     # Ex derivatives
     dEx = 2*t*sin(kx) + 2*t1*(sin(kx + ky) + sin(kx - ky)) + 4*t2*sin(2*kx)
@@ -82,7 +84,7 @@ class Model():
     eta: float, default=None
         Lorentzian broadening module.
 
-    cste: float, default=None
+    mu: float, default=None
         Constant in dispertion relation.
 
     k_lims: tuple, size=2
@@ -92,28 +94,29 @@ class Model():
         Resolution of phase space (kx, ky).
     """
     def __init__(self, hop_amps: list, frequency: float, eta: float,
-            mu: float, V: float, cste: float, k_lims: tuple,
-            resolution=100) -> None:
+            mu: float, V: float, k_lims: tuple,
+            resolution=100, mus=None) -> None:
         """Initializing Model attributes to actual properties of
         instances.
         """
         # Global attributes
+        self.fig = plt.figure("Simulation")
         self.omega = frequency
         self.eta = eta
         self.mu = mu
         self.V = V
-        self.cste = cste
         self.hops = hop_amps
+        self.mus = mus
 
         # Phase space grid
         kx = arange(k_lims[0], k_lims[1], 1/resolution)
         self.kx, self.ky = meshgrid(kx, kx)
 
         # Energy derivatives grids
-        dEs = dE(hop_amps, self.kx, self.ky, cste)
+        dEs = dE(hop_amps, self.kx, self.ky)
         self.E, self.dEx, self.ddEx, self.dEy, self.ddEy, self.dExEy = dEs
 
-    def get_spectral_weight(self, show=False) -> np.ndarray:
+    def get_spectral_weight(self, mu: float, show=False) -> np.ndarray:
         """Ouputs the spectral weight as a 2D numpy array.
 
         Parameters
@@ -129,17 +132,18 @@ class Model():
             Spectral weight.
         """
         # Spectral weight
-        A1 = self.omega**2 + self.E**2 + self.eta**2 + self.mu**2
-        A2 = -2*(self.omega*self.E + self.E*self.mu - self.omega*self.mu)
+        A1 = self.omega**2 + self.E**2 + self.eta**2 + mu**2
+        A2 = -2*(self.omega*self.E + self.E*mu - self.omega*mu)
         A = 1/pi*(self.eta/(A1 + A2))
 
         if show:
-            fig = plt.figure()
-            ax = fig.add_subplot()
+            plt.clf()
+            ax = self.fig.add_subplot()
             spectral = ax.pcolormesh(self.kx, self.ky, A, cmap=cm.Blues)
-            fig.colorbar(spectral)
+            self.fig.colorbar(spectral)
 
             # Graph format & style
+            ax.set_title("mu = {:.2f}".format(mu))
             ax.set_xlabel("$k_x$")
             ax.set_ylabel("$k_y$")
 
@@ -151,11 +155,6 @@ class Model():
             pass
 
         return A
-
-    def get_mu(self) -> float:
-        """Docs
-        """
-        return
 
     def sigma_ii(self, variable: str) -> np.ndarray:
         """Computing longitudinal conductivity at zero temperature
@@ -199,6 +198,28 @@ class Model():
 
         return conductivity.sum()
 
+    def animate_spectral_weight(self, mu: float):
+        """Spectral weight animation as a function of
+        mu.
+        """
+        A = self.get_spectral_weight(mu=mu, show=True)
+        return
+
+    def animate(self):
+        """This function bundles 'Simulation' instance attributes & its method
+        to actually create a FuncAnimation and starts it till the end.
+        """
+        simul = animation.FuncAnimation(fig=self.fig,
+                                        func=self.animate_spectral_weight,
+                                        frames=self.mus,
+                                        interval=100)
+
+
+        f = r"./animation.gif"
+        simul.save(f)
+        return
+
+
 if __name__ == "__main__":
     N = Model(
             hop_amps=[1, 0.0, 0.0],
@@ -206,18 +227,18 @@ if __name__ == "__main__":
             eta=0.05,
             mu=0.0,
             V=1.0,
-            cste=0.0,
             k_lims=(-pi, pi),
-            resolution=100)
+            resolution=1000
+            )
 
     # Spectral weight
-    N.get_spectral_weight(show=True)
+    N.get_spectral_weight(mu=N.mu, show=True)
 
-    # Conductivity
-    sigma_xx = N.sigma_ii('x')
-    sigma_yy = N.sigma_ii('y')
-    sigma_xy = N.sigma_xy()
-
-    # Hall coefficient
-    n_H = N.V*sigma_xx*sigma_yy/(sigma_xy*e)
+    # # Conductivity
+    # sigma_xx = N.sigma_ii('x')
+    # sigma_yy = N.sigma_ii('y')
+    # sigma_xy = N.sigma_xy()
+    #
+    # # Hall coefficient
+    # n_H = N.V*sigma_xx*sigma_yy/(sigma_xy*e)
 

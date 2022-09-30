@@ -7,7 +7,7 @@ import numpy as np
 from rich.progress import track
 from qutip import Qobj, basis, create, destroy, num, tensor, identity
 
-from hamiltonian._functions import scalar, delta
+from _functions import scalar, delta
 
 
 class Network():
@@ -106,9 +106,9 @@ class Network():
         --------
         >>> N = Network(sites_nb=1)
         >>> N.get_hamiltonian(model="Hubbard", U=1, t=1)
-        >>> Quantum object: dims = [[2, 2, 2, 2, 2, 2, 2, 2], [2, 2, 2, 2, 2, 2, 2, 2]],
-        shape = (256, 256), type = oper, isherm = True
-        Qobj data =
+        >>> Quantum object: dims = [[2, 2, 2, 2, 2, 2, 2, 2],
+        [2, 2, 2, 2, 2, 2, 2, 2]], shape = (256, 256), type = oper,
+        isherm = True Qobj data =
         [[ 0.  0.  0. ...  0.  0.  0.]
          [ 0.  0. -1. ...  0.  0.  0.]
          [ 0. -1.  0. ...  0.  0.  0.]
@@ -176,7 +176,8 @@ class Network():
         >>> N.get_e(H=Hamiltonian, states=[15, 15])
         >>> 2.0
         """
-        bra, ket = self.get_state(states[0], type="bra"), self.get_state(states[1])
+        bra = self.get_state(states[0], type="bra")
+        ket = self.get_state(states[1])
         E = bra*H*ket
 
         return E.tr()
@@ -203,8 +204,8 @@ class Network():
         >>> N = Network(sites_nb=2)
         >>> Hamitonian = N.get_hamiltonian(model="Hubbard", U=1, t=1)
         >>> N.lanczos(H=Hamiltonian, iterations=10)
-        >>> (2.561552779602264, Quantum object: dims = [[10], [1]], shape = (10, 1), type = ket
-        Qobj data =
+        >>> (2.561552779602264, Quantum object: dims = [[10], [1]],
+        shape = (10, 1), type = ket Qobj data =
         [[0.43516215]
          [0.78820544]
          [0.43516215]
@@ -244,9 +245,12 @@ class Network():
                 phi_n = phi_n_plus
 
                 for lgn in range(iter + 1):
-                    H_n[lgn, iter - 1] = b_n*delta(lgn, iter) + a_n_minus*delta(lgn, iter - 1) + b_n_minus*delta(lgn, iter - 2)
+                    H_n[lgn, iter - 1] = b_n*delta(lgn, iter) + \
+                        a_n_minus*delta(lgn, iter - 1) + \
+                        b_n_minus*delta(lgn, iter - 2)
 
-                    H_n[lgn, iter] = a_n*delta(lgn, iter) + b_n*delta(lgn, iter - 1)
+                    H_n[lgn, iter] = a_n*delta(lgn, iter) + \
+                            b_n*delta(lgn, iter - 1)
 
             H_phi = Qobj(H_n)
 
@@ -255,7 +259,9 @@ class Network():
             else:
                 pass
 
-        print(f"Lanczos algorithm hasn't converged with {iterations} iterations!\n")
+        print(f"Lanczos algorithm hasn't "
+                "converged with {iterations} iterations!\n")
+
         return 0.0, basis(1)
 
 
