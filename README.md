@@ -1,7 +1,7 @@
 <h1 align="center">NQFT (Numerical Quantum Field Theory)</h1>
 
 <div align="center">
-  <img width="180" height="180" src="./nqft/figs/title_fig.png">
+  <img width="180" height="180" src="./figs/title_fig.png">
   <br />
   <figcaption>Fig.1 - Schéma d'une super-période, Charlebois Maxime.</figcaption>
 </div>
