@@ -7,7 +7,7 @@ import numpy as np
 from rich.progress import track
 from qutip import Qobj, basis, create, destroy, num, tensor, identity
 
-from _functions import scalar, delta
+from nqft.functions import scalar, delta
 
 
 class Network():
