@@ -4,11 +4,10 @@ spin-density wave.
 
 import time
 import numpy as np
-from matplotlib import cm
 from functools import wraps
 import matplotlib.pyplot as plt
 from scipy.constants import e, pi
-import matplotlib.animation as animation
+from matplotlib import cm, animation
 from numpy import arange, meshgrid, sin, cos
 
 
@@ -150,7 +149,7 @@ class Model():
             min, max = self.kx[0, 0], self.kx[-1, -1]
             ax.set_xticks(ticks=[min, 0, max], labels=["$-\pi$", "0", "$\pi$"])
             ax.set_yticks(ticks=[min, 0, max], labels=["$-\pi$", "0", "$\pi$"])
-            plt.show()
+            # plt.show()
         else:
             pass
 
@@ -213,10 +212,7 @@ class Model():
                                         func=self.animate_spectral_weight,
                                         frames=self.mus,
                                         interval=100)
-
-
-        f = r"./animation.gif"
-        simul.save(f)
+        plt.show()
         return
 
 
@@ -228,11 +224,12 @@ if __name__ == "__main__":
             mu=0.0,
             V=1.0,
             k_lims=(-pi, pi),
-            resolution=1000
+            resolution=100,
+            mus=np.linspace(-3, 3, 100)
             )
 
     # Spectral weight
-    N.get_spectral_weight(mu=N.mu, show=True)
+    N.animate()
 
     # # Conductivity
     # sigma_xx = N.sigma_ii('x')
