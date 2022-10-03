@@ -210,6 +210,17 @@ class Model():
 
         return conductivity.sum()
 
+    def get_hall_nb(self) -> float:
+        """Computes Hall number.
+
+        Returns
+        -------
+        n_H: float
+            Hall number
+        """
+        n_H = self.V*self.sigma_ii('x')*self.sigma_ii('y')/(e*self.sigma_xy())
+        return n_H
+
 
 if __name__ == "__main__":
     N = Model(
@@ -225,11 +236,11 @@ if __name__ == "__main__":
     # Spectral weight
     N.plot_spectral_weight()
 
-    # # Conductivity
+    # # Conductivities
     sigma_xx = N.sigma_ii('x')
     sigma_yy = N.sigma_ii('y')
     sigma_xy = N.sigma_xy()
 
-    # Hall coefficient
-    n_H = N.V*sigma_xx*sigma_yy/(sigma_xy*e)
+    # Hall number
+    n_H = N.get_hall_nb()
     print("n_H = {:.4e}".format(n_H))
