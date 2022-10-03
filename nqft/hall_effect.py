@@ -4,10 +4,11 @@ spin-density wave.
 
 import time
 import numpy as np
+from rich import print
+from matplotlib import cm
 from functools import wraps
 import matplotlib.pyplot as plt
 from scipy.constants import e, pi
-from matplotlib import cm, animation
 from numpy import arange, meshgrid, sin, cos
 
 
@@ -18,7 +19,7 @@ def timeit(func):
         result = func(*args, **kwargs)
         end_time = time.perf_counter()
         total_time = end_time - start_time
-        print(f'Function {func.__name__} took {total_time:.2f} seconds')
+        print(f'Function {func.__name__} took {total_time:.4f} seconds\n')
         return result
     return timeit_wrapper
 
@@ -68,6 +69,34 @@ def dE(hop_amps: list, kx: np.ndarray, ky: np.ndarray) -> tuple:
 
     return E, dEx, ddEx, dEy, ddEy, dExEy
 
+@timeit
+def get_spectral_weight(omega: float, eta: float, mu: float,
+        E: np.ndarray) -> np.ndarray:
+    """Ouputs the spectral weight as a 2D numpy array.
+
+    Parameters
+    ----------
+    omega: float, default=None
+        Frequency at which we observe the fermi surface.
+    eta: float default=None
+        Lorentzian broadening module.
+    mu: float, default=0.0
+        ADD DESCRIPTION.
+    E: np.ndarray. shape=(N, N), default=None
+        Eigenenergies of the system as a 2D numpy array.
+
+    Returns
+    -------
+    A: np.ndarray, shape=(N, N)
+        Spectral weight.
+    """
+    # Spectral weight
+    A1 = omega**2 + E**2 + eta**2 + mu**2
+    A2 = -2*(omega*E + E*mu - omega*mu)
+    A = 1/pi*(eta/(A1 + A2))
+
+    return A
+
 class Model():
     """Model instance to determine Hall coefficient from
     tight-binding hamiltonian.
@@ -93,19 +122,17 @@ class Model():
         Resolution of phase space (kx, ky).
     """
     def __init__(self, hop_amps: list, frequency: float, eta: float,
-            mu: float, V: float, k_lims: tuple,
-            resolution=100, mus=None) -> None:
+            mu: float, V: float, k_lims: tuple, resolution=100) -> None:
         """Initializing Model attributes to actual properties of
         instances.
         """
         # Global attributes
-        self.fig = plt.figure("Simulation")
+        self.fig = plt.figure("Spectral weight")
         self.omega = frequency
         self.eta = eta
         self.mu = mu
         self.V = V
         self.hops = hop_amps
-        self.mus = mus
 
         # Phase space grid
         kx = arange(k_lims[0], k_lims[1], 1/resolution)
@@ -115,45 +142,33 @@ class Model():
         dEs = dE(hop_amps, self.kx, self.ky)
         self.E, self.dEx, self.ddEx, self.dEy, self.ddEy, self.dExEy = dEs
 
-    def get_spectral_weight(self, mu: float, show=False) -> np.ndarray:
-        """Ouputs the spectral weight as a 2D numpy array.
+        # Spectral weight array
+        self.A = get_spectral_weight(omega=frequency, eta=eta, mu=mu, E=self.E)
 
-        Parameters
-        ----------
-        mu: float, default=0.0
-            ADD DESCRIPTION.
-        show: bool, default=False
-            If set to True, outputs a colormesh of the spectral weight.
+    def plot_spectral_weight(self) -> plt.figure:
+        """Ouputs the spectral weight as a 2D numpy array.
 
         Returns
         -------
-        A: np.ndarray, shape=(N, N)
-            Spectral weight.
+        -: plt.figure
+            2D graph of spectral weight.
         """
-        # Spectral weight
-        A1 = self.omega**2 + self.E**2 + self.eta**2 + mu**2
-        A2 = -2*(self.omega*self.E + self.E*mu - self.omega*mu)
-        A = 1/pi*(self.eta/(A1 + A2))
+        # Init plot
+        ax = self.fig.add_subplot()
+        spectral = ax.pcolormesh(self.kx, self.ky, self.A, cmap=cm.Blues)
+        self.fig.colorbar(spectral)
 
-        if show:
-            plt.clf()
-            ax = self.fig.add_subplot()
-            spectral = ax.pcolormesh(self.kx, self.ky, A, cmap=cm.Blues)
-            self.fig.colorbar(spectral)
+        # Graph format & style
+        ax.set_title("$\mu = {:.2f}$".format(self.mu))
+        ax.set_xlabel("$k_x$")
+        ax.set_ylabel("$k_y$")
 
-            # Graph format & style
-            ax.set_title("mu = {:.2f}".format(mu))
-            ax.set_xlabel("$k_x$")
-            ax.set_ylabel("$k_y$")
+        min, max = self.kx[0, 0], self.kx[-1, -1]
+        ax.set_xticks(ticks=[min, 0, max], labels=["$-\pi$", "0", "$\pi$"])
+        ax.set_yticks(ticks=[min, 0, max], labels=["$-\pi$", "0", "$\pi$"])
+        plt.show()
 
-            min, max = self.kx[0, 0], self.kx[-1, -1]
-            ax.set_xticks(ticks=[min, 0, max], labels=["$-\pi$", "0", "$\pi$"])
-            ax.set_yticks(ticks=[min, 0, max], labels=["$-\pi$", "0", "$\pi$"])
-            # plt.show()
-        else:
-            pass
-
-        return A
+        return
 
     def sigma_ii(self, variable: str) -> np.ndarray:
         """Computing longitudinal conductivity at zero temperature
@@ -170,11 +185,10 @@ class Model():
         conductivity: float
         """
         coeff = e**2*pi/self.V
-        A = self.get_spectral_weight()
         if variable == 'x':
-            conductivity = coeff*self.dEx**2*A**2
+            conductivity = coeff*self.dEx**2*self.A**2
         elif variable == 'y':
-            conductivity = coeff*self.dEy**2*A**2
+            conductivity = coeff*self.dEy**2*self.A**2
 
         return conductivity.sum()
 
@@ -188,32 +202,13 @@ class Model():
         conductivity: float
         """
         coeff = e**3*pi**2/(3*self.V)
-        A = self.get_spectral_weight()
 
         c1 = -2*self.dEx**2*self.dExEy
         c2 = self.dEx**2*self.ddEy
         c3 = self.dEy**2*self.ddEx
-        conductivity = coeff*(c1 + c2 + c3)*A**3
+        conductivity = coeff*(c1 + c2 + c3)*self.A**3
 
         return conductivity.sum()
-
-    def animate_spectral_weight(self, mu: float):
-        """Spectral weight animation as a function of
-        mu.
-        """
-        A = self.get_spectral_weight(mu=mu, show=True)
-        return
-
-    def animate(self):
-        """This function bundles 'Simulation' instance attributes & its method
-        to actually create a FuncAnimation and starts it till the end.
-        """
-        simul = animation.FuncAnimation(fig=self.fig,
-                                        func=self.animate_spectral_weight,
-                                        frames=self.mus,
-                                        interval=100)
-        plt.show()
-        return
 
 
 if __name__ == "__main__":
@@ -224,18 +219,17 @@ if __name__ == "__main__":
             mu=0.0,
             V=1.0,
             k_lims=(-pi, pi),
-            resolution=100,
-            mus=np.linspace(-3, 3, 100)
+            resolution=100
             )
 
     # Spectral weight
-    N.animate()
+    N.plot_spectral_weight()
 
     # # Conductivity
-    # sigma_xx = N.sigma_ii('x')
-    # sigma_yy = N.sigma_ii('y')
-    # sigma_xy = N.sigma_xy()
-    #
-    # # Hall coefficient
-    # n_H = N.V*sigma_xx*sigma_yy/(sigma_xy*e)
+    sigma_xx = N.sigma_ii('x')
+    sigma_yy = N.sigma_ii('y')
+    sigma_xy = N.sigma_xy()
 
+    # Hall coefficient
+    n_H = N.V*sigma_xx*sigma_yy/(sigma_xy*e)
+    print("n_H = {:.4e}".format(n_H))
