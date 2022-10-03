@@ -9,7 +9,7 @@ from matplotlib import cm
 from functools import wraps
 import matplotlib.pyplot as plt
 from scipy.constants import e, pi
-from numpy import arange, meshgrid, sin, cos
+from numpy import arange, meshgrid, sin, cos, exp
 
 
 def timeit(func):
@@ -25,7 +25,7 @@ def timeit(func):
 
 
 @timeit
-def dE(hop_amps: list, kx: np.ndarray, ky: np.ndarray, mu: np.array) -> tuple:
+def dE(hop_amps: list, kx: np.ndarray, ky: np.ndarray, mus: np.array) -> tuple:
     """Outputs model's energy and it's derivatives.
 
     Parameters
@@ -52,10 +52,10 @@ def dE(hop_amps: list, kx: np.ndarray, ky: np.ndarray, mu: np.array) -> tuple:
     # Energy
     E = []
     a = -2*t*(cos(kx) + cos(ky))
-    b = -2*t1*(cos(kx + ky) + cos(kx - ky))
+    b = -4*t1*cos(kx)*cos(ky)
     c = -2*t2*(cos(2*kx) + cos(2*ky))
-    for i in mu:
-        E.append(a + b + c - i)
+    for mu in mus:
+        E.append(a + b + c - mu)
 
     # Ex derivatives
     dEx = 2*t*sin(kx) + 2*t1*(sin(kx + ky) + sin(kx - ky)) + 4*t2*sin(2*kx)
@@ -131,7 +131,8 @@ class Model():
         Resolution of phase space (kx, ky).
     """
     def __init__(self, hop_amps: list, frequency: float, eta: float,
-            mus: np.array, V: float, k_lims: tuple, resolution=100) -> None:
+            mus: np.array, V: float, beta: float, k_lims: tuple,
+            resolution=100) -> None:
         """Initializing Model attributes to actual properties of
         instances.
         """
@@ -142,10 +143,13 @@ class Model():
         self.mus = mus
         self.V = V
         self.hops = hop_amps
+        self.beta = beta
 
         # Phase space grid
-        kx = arange(k_lims[0], k_lims[1], 1/resolution)
+        dks = (k_lims[1] - k_lims[0])/resolution
+        kx = arange(k_lims[0], k_lims[1], dks)
         self.kx, self.ky = meshgrid(kx, kx)
+        self.normalize = 1 / self.kx.shape[0]**2
 
         # Energy derivatives grids
         dEs = dE(hop_amps, self.kx, self.ky, mus)
@@ -166,7 +170,7 @@ class Model():
         idx = len(self.A)//2
         data = self.A[idx]
 
-        # Init plot
+
         ax = self.fig.add_subplot()
         spectral = ax.pcolormesh(self.kx, self.ky, data, cmap=cm.Blues)
         self.fig.colorbar(spectral)
@@ -183,7 +187,7 @@ class Model():
 
         return
 
-    def sigma_ii(self, variable: str) -> np.ndarray:
+    def sigma_ii(self, variable: str) -> list:
         """Computing longitudinal conductivity at zero temperature
         in the zero-frequency limit when interband transitions can be
         neglected.
@@ -212,7 +216,7 @@ class Model():
 
         return conductivity
 
-    def sigma_xy(self) -> np.ndarray:
+    def sigma_xy(self) -> list:
         """Computing transversal conductivity at zero temperature
         in the zero-frequency limit when interband transitions can be
         neglected.
@@ -233,7 +237,17 @@ class Model():
 
         return conductivity
 
-    def get_hall_nb(self) -> float:
+    def get_density(self) -> list:
+        """Docs
+        """
+        densities = []
+        for energies in self.E:
+            density = 1.0 / (1.0 + exp(self.beta*energies))
+            densities.append(self.normalize*density.sum())
+
+        return densities
+
+    def get_hall_nb(self) -> list:
         """Computes Hall number.
 
         Returns
@@ -251,13 +265,14 @@ class Model():
 
 if __name__ == "__main__":
     N = Model(
-            hop_amps=[1.0, 0.0, 0.0],
+            hop_amps=[1.0, -0.3, 0.2],
             frequency=0.0,
-            eta=0.05,
-            mus=np.arange(-4, 4, 1/50),
+            eta=0.1,
+            mus=arange(-5, 5, 8/1000),
             V=1.0,
+            beta=100,
             k_lims=(-pi, pi),
-            resolution=50
+            resolution=500
             )
 
     # # Spectral weight
@@ -268,6 +283,11 @@ if __name__ == "__main__":
     # sigma_yy = N.sigma_ii('y')
     # sigma_xy = N.sigma_xy()
 
-    # Hall number
-    n_H = N.get_hall_nb()
-    print("n_H = {}.\n\nWith {} points".format(n_H, len(n_H)))
+    # Density
+    n = N.get_density()
+
+    plt.plot(N.mus, n, label="Conduction electrons density $n(\mu)$")
+    plt.xlabel("$\mu$"); plt.ylabel("Density $n$")
+    plt.legend()
+    plt.show()
+
