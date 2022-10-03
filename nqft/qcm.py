@@ -1,3 +1,7 @@
+"""This module is dedicated to 'pyqcm'
+experimentation.
+"""
+
 from pyqcm import *
 from pyqcm.cdmft import cdmft
 from pyqcm.draw_operator import draw_operator
@@ -10,12 +14,12 @@ def build_matrix(shape: tuple) -> list:
 
     Parameters
     ----------
-    shape: tuple, shape (2, 1), default=None
+    shape: tuple, shape=(2, 1), default=None
         Shape of sites network.
 
     Returns
     -------
-    array: np.ndarray, shape (*shape)
+    array: np.ndarray, shape=(*shape)
         Numpy array of coordinates.
 
     Examples

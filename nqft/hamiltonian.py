@@ -17,15 +17,15 @@ class Network():
     ----------
     sites_nb: int, default=None
         Number of sites of the network
-    vaccum: Qobj, shape (2, 1)
+    vaccum: Qobj, shape=(2, 1)
         Vaccum state of 2D Fock space.
-    creation: Qobj, shape (2, 2)
+    creation: Qobj, shape=(2, 2)
         Creation operator in second quantization formalism.
-    anihilation: Qobj, shape (2, 2)
+    anihilation: Qobj, shape=(2, 2)
         Anihilation operator in second quantization formalism.
-    number: Qobj, shape (2, 2)
+    number: Qobj, shape=(2, 2)
         Number operator in second quantization formalism.
-    I: Qobj, shape (2, 2)
+    I: Qobj, shape=(2, 2)
         Identity operator.
     """
 
@@ -54,7 +54,7 @@ class Network():
 
         Returns
         -------
-        bra, ket: qutip.Qobj, shape (4^SITES, 1)
+        bra, ket: qutip.Qobj, shape=(4^SITES, 1)
             Full vector representation.
 
         Examples
@@ -99,7 +99,7 @@ class Network():
 
         Returns
         -------
-        H: qutip.Qobj, shape (4^SITES, 4^SITES)
+        H: qutip.Qobj, shape=(4^SITES, 4^SITES)
             Tensor object representing hamitonian for given 'model'.
 
         Examples
@@ -157,9 +157,9 @@ class Network():
 
         Parameters
         ----------
-        H: Qobj, shape (4^self.sites, 4^self.sites), default=None
+        H: Qobj, shape=(4^self.sites, 4^self.sites), default=None
             Fermions network hamiltonian.
-        states: array-like, shape (2, 1), default=None
+        states: array-like, shape=(2, 1), default=None
             Vectors used to process scalar product on H.
 
             (ex: states=[bra, ket] as integers to convert from binairy)
@@ -187,16 +187,16 @@ class Network():
 
         Parameters
         ----------
-        H: Qobj, shape (4^self.sites, 4^self.sites), default=None
+        H: Qobj, shape=(4^self.sites, 4^self.sites), default=None
             Fermions network hamiltonian.
         iterations: int, default=None
             Number of iterations on which perform the algorithm.
-        init_state: QObj, shape (4^self.sites, 1) default=random
+        init_state: QObj, shape=(4^self.sites, 1) default=random
             Initial quantum state to start the first iteration.
 
         Returns
         -------
-        -: tuple, shape (1, 2)
+        -: tuple, shape=(1, 2)
             Respectively the maximum eigenvalue and the associated eigenvector.
 
         Examples
