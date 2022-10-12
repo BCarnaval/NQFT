@@ -24,10 +24,11 @@ def scalar(m: Qobj, n=None) -> float:
         Result of scalar product.
     """
     if n:
-        val = m.dag()*n
+        val = m.dag() * n
     else:
-        val = m.dag()*m
+        val = m.dag() * m
     return val.tr()
+
 
 def delta(j: int, k: int) -> float:
     """Kronecker delta function.
@@ -44,4 +45,3 @@ def delta(j: int, k: int) -> float:
     -: float (0.0 or 1.0)
     """
     return 1.0 if j == k else 0.0
-

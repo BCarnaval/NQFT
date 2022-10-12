@@ -62,6 +62,7 @@ def dE(hop_amps: list, kx: np.ndarray, ky: np.ndarray, mus: np.array) -> tuple:
     dEx = (
         2 * t * sin(kx) + 2 * t1 * (sin(kx + ky) + sin(kx - ky)) + 4 * t2 * sin(2 * kx)
     )
+
     ddEx = (
         2 * t * cos(kx) + 2 * t1 * (cos(kx + ky) + cos(kx - ky)) + 8 * t2 * cos(2 * kx)
     )
@@ -196,13 +197,13 @@ class Model:
         self.fig.colorbar(spectral)
 
         # Graph format & style
-        ax.set_title("$\mu = {:.2f}$".format(self.mus[idx]))
+        ax.set_title("$\\mu = {:.2f}$".format(self.mus[idx]))
         ax.set_xlabel("$k_x$")
         ax.set_ylabel("$k_y$")
 
         min, max = self.kx[0, 0], self.kx[-1, -1]
-        ax.set_xticks(ticks=[min, 0, max], labels=["$-\pi$", "0", "$\pi$"])
-        ax.set_yticks(ticks=[min, 0, max], labels=["$-\pi$", "0", "$\pi$"])
+        ax.set_xticks(ticks=[min, 0, max], labels=["$-\\pi$", "0", "$\\pi$"])
+        ax.set_yticks(ticks=[min, 0, max], labels=["$-\\pi$", "0", "$\\pi$"])
         plt.show()
 
         return
@@ -257,15 +258,17 @@ class Model:
 
         return conductivity
 
+    @timeit
     def get_density(self) -> list:
         """Docs"""
         densities = []
         for energies in self.E:
             density = 1.0 / (1.0 + exp(self.beta * energies))
-            densities.append(self.normalize * density.sum())
+            densities.append(self.normalize * density.astype("float128").sum())
 
         return densities
 
+    @timeit
     def get_hall_nb(self) -> list:
         """Computes Hall number.
 
@@ -275,8 +278,10 @@ class Model:
             Hall number
         """
         n_H = []
-        for xx, yy, xy in zip(self.sigma_ii("x"), self.sigma_ii("y"), self.sigma_xy()):
-            n_H.append(self.V * xx * yy / (e * xy))
+        s_xy = self.sigma_xy()
+        s_xx, s_yy = self.sigma_ii("x"), self.sigma_ii("y")
+        for xx, yy, xy in zip(s_xx, s_yy, s_xy):
+            n_H.append(self.normalize * self.V * xx * yy / (e * xy))
 
         return n_H
 
@@ -285,27 +290,25 @@ if __name__ == "__main__":
     N = Model(
         hop_amps=[1.0, -0.2, 0.3],
         frequency=0.0,
-        eta=0.05,
-        mus=np.linspace(-4, 4, 200),
+        eta=0.1,
+        mus=np.linspace(-4, 4, 100),
         V=1.0,
         beta=100,
         k_lims=(-pi, pi),
-        resolution=1000,
+        resolution=400,
     )
 
-    # Spectral weight
-    N.plot_spectral_weight()
+    # # Spectral weight
+    # N.plot_spectral_weight()
 
-    # # Conductivities
-    # sigma_xx = N.sigma_ii('x')
-    # sigma_yy = N.sigma_ii('y')
-    # sigma_xy = N.sigma_xy()
+    # Density
+    n = N.get_density()
 
-    # # Density
-    # n = N.get_density()
-    #
-    # plt.plot(N.mus, n, label="Conduction electrons density $n(\mu)$")
-    # plt.xlabel("$\mu$")
-    # plt.ylabel("Density $n$")
-    # plt.legend()
-    # plt.show()
+    # Hall number
+    n_H = N.get_hall_nb()
+
+    plt.plot(n, n_H, label="$n_H(n)$")
+    plt.xlabel("Density $n$")
+    plt.ylabel("Hall number $n_H$")
+    plt.legend()
+    plt.show()

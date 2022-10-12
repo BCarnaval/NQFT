@@ -10,7 +10,7 @@ from qutip import Qobj, basis, create, destroy, num, tensor, identity
 from nqft.functions import scalar, delta
 
 
-class Network():
+class Network:
     """A class representing a fermionic many-body problem Network
 
     Attributes
@@ -68,20 +68,19 @@ class Network():
          [1.]
          [0.]]
         """
-        binairy = format(state, 'b').zfill(self.sites*2)
+        binairy = format(state, "b").zfill(self.sites * 2)
         ket = [*binairy]
 
         vec_state = []
         for presence in ket:
             if int(presence):
-                vec_state.append(self.creation*self.vaccum)
+                vec_state.append(self.creation * self.vaccum)
             else:
                 vec_state.append(self.vaccum)
 
         vec = tensor(*vec_state)
 
         return vec.dag() if type == "bra" else vec
-
 
     def get_hamiltonian(self, model: str, U: int, **kwargs) -> Qobj:
         """Outputs the hamiltonian of fermion network using
@@ -119,11 +118,11 @@ class Network():
         """
         if model == "Hubbard":
             H1, H2 = 0, 0
-            t, = kwargs.values()
+            (t,) = kwargs.values()
 
             for idx in track(range(self.sites), description="Hamitonian"):
                 sites = [i for i in range(self.sites)]
-                ops_1 = [self.I for i in range(self.sites*2)]
+                ops_1 = [self.I for i in range(self.sites * 2)]
 
                 ops_1[idx] = self.number
                 ops_1[self.sites + idx] = self.number
@@ -132,8 +131,8 @@ class Network():
                 H1 += tensor(*ops_1)
 
                 for ext in sites:
-                    ops_2_up = [self.I for i in range(self.sites*2)]
-                    ops_2_down = [self.I for i in range(self.sites*2)]
+                    ops_2_up = [self.I for i in range(self.sites * 2)]
+                    ops_2_down = [self.I for i in range(self.sites * 2)]
 
                     ops_2_up[idx] = self.creation
                     ops_2_up[ext] = self.anihilation
@@ -143,7 +142,7 @@ class Network():
 
                     H2 += tensor(*ops_2_up) + tensor(*ops_2_down)
 
-            H = U*H1 - t*H2
+            H = U * H1 - t * H2
 
         elif model != "Hubbard":
             # Potentially add AIM model
@@ -178,7 +177,7 @@ class Network():
         """
         bra = self.get_state(states[0], type="bra")
         ket = self.get_state(states[1])
-        E = bra*H*ket
+        E = bra * H * ket
 
         return E.tr()
 
@@ -230,7 +229,7 @@ class Network():
                 a_n = H.matrix_element(init.dag(), init) / scalar(init)
                 b_n = 0
 
-                phi_n_plus = H*init - a_n*init
+                phi_n_plus = H * init - a_n * init
                 phi_n_minus = init
                 phi_n = phi_n_plus
             else:
@@ -240,17 +239,18 @@ class Network():
                 b_n_minus = b_n
                 b_n = np.sqrt(scalar(phi_n) / scalar(phi_n_minus))
 
-                phi_n_plus = H*phi_n - a_n*phi_n - b_n**2*phi_n_minus
+                phi_n_plus = H * phi_n - a_n * phi_n - b_n**2 * phi_n_minus
                 phi_n_minus = phi_n
                 phi_n = phi_n_plus
 
                 for lgn in range(iter + 1):
-                    H_n[lgn, iter - 1] = b_n*delta(lgn, iter) + \
-                        a_n_minus*delta(lgn, iter - 1) + \
-                        b_n_minus*delta(lgn, iter - 2)
+                    H_n[lgn, iter - 1] = (
+                        b_n * delta(lgn, iter)
+                        + a_n_minus * delta(lgn, iter - 1)
+                        + b_n_minus * delta(lgn, iter - 2)
+                    )
 
-                    H_n[lgn, iter] = a_n*delta(lgn, iter) + \
-                            b_n*delta(lgn, iter - 1)
+                    H_n[lgn, iter] = a_n * delta(lgn, iter) + b_n * delta(lgn, iter - 1)
 
             H_phi = Qobj(H_n)
 
@@ -259,12 +259,10 @@ class Network():
             else:
                 pass
 
-        print(f"Lanczos algorithm hasn't "
-                "converged with {iterations} iterations!\n")
+        print(f"Lanczos hasn't " "converged with {iterations} iterations!\n")
 
         return 0.0, basis(1)
 
 
 if __name__ == "__main__":
     pass
-
