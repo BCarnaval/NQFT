@@ -9,6 +9,7 @@ from matplotlib import cm
 from functools import wraps
 import matplotlib.pyplot as plt
 from scipy.constants import e, pi
+from dataclasses import dataclass, field
 from numpy import arange, meshgrid, sin, cos, exp
 
 from nqft.functions import read_fermi_arc, find_nearest
@@ -28,12 +29,12 @@ def timeit(func):
 
 
 @timeit
-def dE(hop_amps: list, kx: np.ndarray, ky: np.ndarray, mus: np.array) -> tuple:
+def dE(hop_amps: tuple, kx: np.ndarray, ky: np.ndarray, mus: np.array) -> tuple:
     """Outputs model's energies and it's derivatives.
 
     Parameters
     ----------
-    hop_amps: list, default=None
+    hop_amps: tuple, default=None
         Hopping amplitudes coefficients.
 
     kx: np.ndarray, shape=(N, N), default=None
@@ -47,7 +48,7 @@ def dE(hop_amps: list, kx: np.ndarray, ky: np.ndarray, mus: np.array) -> tuple:
 
     Returns
     -------
-    E, dEx, ddEx, dEy, ddEy, dExEy: tuple, size=6
+    E, dEs: tuple, size=2
         Energies and it's derivatives in a tuple.
     """
     # Energy
@@ -58,28 +59,36 @@ def dE(hop_amps: list, kx: np.ndarray, ky: np.ndarray, mus: np.array) -> tuple:
 
     E = np.array([a + b + c - mu for mu in mus])
 
+    dEs = {
+            'dE_dx': None,
+            'ddE_dxx': None,
+            'dE_dy': None,
+            'ddE_dyy': None,
+            'ddE_dxdy': None
+            }
+
     # Ex derivatives
-    dEx = 2 * t * sin(kx) + \
+    dEs['dE_dx'] = 2 * t * sin(kx) + \
         2 * t1 * (sin(kx + ky) + sin(kx - ky)) + \
         4 * t2 * sin(2 * kx)
 
-    ddEx = 2 * t * cos(kx) + \
+    dEs['ddE_dxx'] = 2 * t * cos(kx) + \
         2 * t1 * (cos(kx + ky) + cos(kx - ky)) + \
         8 * t2 * cos(2 * kx)
 
     # Ey derivatives
-    dEy = 2 * t * sin(ky) + \
+    dEs['dE_dy'] = 2 * t * sin(ky) + \
         2 * t1 * (sin(kx + ky) - sin(kx - ky)) + \
         4 * t2 * sin(2 * ky)
 
-    ddEy = 2 * t * cos(ky) + \
+    dEs['ddE_dyy'] = 2 * t * cos(ky) + \
         2 * t1 * (cos(kx + ky) + cos(kx - ky)) + \
         8 * t2 * cos(2 * ky)
 
     # Mixed derivative
-    dExEy = 2 * t1 * (cos(kx + ky) - cos(kx - ky))
+    dEs['dde_dxdy'] = 2 * t1 * (cos(kx + ky) - cos(kx - ky))
 
-    return E, dEx, ddEx, dEy, ddEy, dExEy
+    return E, dEs
 
 
 @timeit
@@ -107,6 +116,7 @@ def get_spectral_weight(omega: float, eta: float, E: np.ndarray) -> np.ndarray:
     return A.imag
 
 
+@dataclass(kw_only=True)
 class Model:
     """Model instance to determine Hall coefficient and
     density from tight-binding hamiltonian.
@@ -122,47 +132,77 @@ class Model:
     eta: float, default=None
         Lorentzian broadening module.
 
-    mu: np.array, size=M, default=None
-        ADD DESCRIPTION.
+    mu_lims: tuple, size=3, default=None
+        Chemical potential interval values and
+        number of them.
 
     V: float, default=None
         Normalization volume.
 
-    k_lims: tuple, size=2
+    k_lims: tuple, size=2, default=(-pi, pi)
         Wavevectors interval values.
 
     resolution: int, default=100
         Resolution of phase space (kx, ky).
     """
+    # Non-default attributes
+    hopping_amplitudes: tuple[float]
+    omega: float
+    eta: float
+    mu_lims: tuple[float]
+    v: float
+    beta: float
 
-    def __init__(self, hop_amps: list, frequency: float, eta: float,
-                 mus: np.array, V: float, beta: float, k_lims: tuple,
-                 resolution=100) -> None:
-        """Initializing Model attributes to actual properties of
-        instances.
+    # Phase space init
+    k_x: np.ndarray = field(init=False, repr=False)
+    k_y: np.ndarray = field(init=False, repr=False)
+
+    # Energies init
+    mus: np.array = field(init=False, repr=False)
+    E: np.ndarray = field(init=False, repr=False)
+    dEs: dict[np.ndarray] = field(init=False, repr=False)
+    norm: float = field(init=False)
+
+    # Spectral functions init
+    A: np.ndarray = field(init=False, repr=False)
+    A_Peter: dict[np.ndarray] = field(init=False, repr=False)
+
+    # Matplotlib instances init
+    fig: plt.Figure = field(init=False)
+    grid: plt.GridSpec = field(init=False)
+
+    # Default attributes
+    k_lims: tuple[float] = (-pi, pi)
+    resolution: int = 100
+
+    def __post_init__(self) -> None:
+        """Computing post-init class attributes.
         """
-        # Global attributes
-        self.fig, self.axes = plt.subplots(1, 1)
-        self.omega = frequency
-        self.eta = eta
-        self.mus = mus
-        self.V = V
-        self.hops = hop_amps
-        self.beta = beta
+        # Chemical potential array
+        self.mus = np.linspace(*self.mu_lims)
 
-        # Phase space grid
-        dks = (k_lims[1] - k_lims[0]) / resolution
-        kx = arange(k_lims[0], k_lims[1], dks)
-        self.kx, self.ky = meshgrid(kx, kx)
-        self.norm = 1 / self.kx.shape[0] ** 2
+        # Matplotlib instances (figure and subplots)
+        self.fig, self.axes = plt.subplots(ncols=2, tight_layout=True)
 
-        # Energy derivatives grids
-        dEs = dE(hop_amps, self.kx, self.ky, mus)
-        self.E, self.dEx, self.ddEx, self.dEy, self.ddEy, self.dExEy = dEs
+        # Phase space grid(s)
+        dks = (self.k_lims[1] - self.k_lims[0]) / self.resolution
+        ks = arange(*self.k_lims, dks)
+        self.k_x, self.k_y = meshgrid(ks, ks)
+        self.norm = 1 / ks.shape[0] / ks.shape[0]
 
-        # Spectral weights arrays
-        self.A_peter = read_fermi_arc()
-        self.A = get_spectral_weight(frequency, eta, self.E)
+        # Energies and it's derivatives (firsts and seconds)
+        self.E, self.dEs = dE(
+                                self.hopping_amplitudes,
+                                self.k_x,
+                                self.k_y,
+                                self.mus
+                                )
+
+        # Spectral functions (Non-interacting model + Peter's)
+        self.A_Peter = read_fermi_arc()
+        self.A = get_spectral_weight(self.omega, self.eta, self.E)
+
+        return
 
     def plot_spectral_weight(self, mu: float, electron_nb=None) -> plt.figure:
         """Ouputs the spectral weight as a 2D numpy array.
@@ -176,46 +216,56 @@ class Model:
         idx = find_nearest(self.mus, mu)
         spectral_mu = self.A[idx]
 
-        # Plot spectral weight
+        # Fig title
         title = "$\\mu = {:.2f}$".format(mu)
-        spectral = self.axes.pcolormesh(
-            self.kx,
-            self.ky,
-            spectral_mu,
-            cmap=cm.Blues,
-            label="$\\mu = {:.2f}$".format(self.mus[idx]),
+        self.axes[0].set_title(title)
+
+        # Plot spectral weight
+        spectral = self.axes[0].pcolormesh(
+                    self.k_x,
+                    self.k_y,
+                    spectral_mu,
+                    cmap=cm.Blues,
+                    label="$\\mu = {:.2f}$".format(self.mus[idx]),
         )
         self.fig.colorbar(spectral)
 
         # Condition to plot Peter's data over colormesh (with some alpha)
         if electron_nb:
+            # Fig title
+            title_peter = "Peter's model: {}".format(electron_nb)
+            self.axes[1].set_title(title_peter)
+
             # Phase space array
-            k_arrays = pi * self.A_peter["coords"]
+            k_arrays = pi * self.A_Peter["coords"]
             kx_g, ky_g = meshgrid(k_arrays, k_arrays)
-            title += ", Peter's model: {}".format(electron_nb)
 
             # Plot one of Peter's spectral weight
-            self.axes.pcolormesh(
-                kx_g,
-                ky_g,
-                self.A_peter[electron_nb],
-                cmap=cm.Oranges,
-                alpha=0.7,
-                label=f"${electron_nb}$",
+            self.axes[1].pcolormesh(
+                                self.k_x,
+                                self.k_y,
+                                spectral_mu,
+                                cmap=cm.Blues
             )
-        else:
-            pass
+            spectral_peter = self.axes[1].pcolormesh(
+                            kx_g,
+                            ky_g,
+                            self.A_Peter[electron_nb],
+                            cmap=cm.Oranges,
+                            alpha=0.6
+            )
+            self.fig.colorbar(spectral_peter)
 
         # Graph format & style
-        self.axes.set_title(title)
-        min, max = self.kx[0, 0], self.kx[-1, -1]
+        min, max = self.k_x[0, 0], self.k_x[-1, -1]
         axes_labels = ["$-\\pi$", "$0$", "$\\pi$"]
 
         # Axes and ticks
-        self.axes.set_xlabel("$k_x$")
-        self.axes.set_ylabel("$k_y$")
-        self.axes.set_xticks(ticks=[min, 0, max], labels=axes_labels)
-        self.axes.set_yticks(ticks=[min, 0, max], labels=axes_labels)
+        for idx in range(2):
+            self.axes[idx].set_xlabel("$k_x$")
+            self.axes[idx].set_ylabel("$k_y$")
+            self.axes[idx].set_xticks(ticks=[min, 0, max], labels=axes_labels)
+            self.axes[idx].set_yticks(ticks=[min, 0, max], labels=axes_labels)
 
         # Show figure's plot
         plt.show()
@@ -239,10 +289,10 @@ class Model:
         coeff = e**2 * pi / self.V
 
         if variable == "x":
-            dE = self.dEx
+            dE = self.dEs['dE_dx']
 
         elif variable == "y":
-            dE = self.dEy
+            dE = self.dEs['dE_dy']
 
         sigma_ii = coeff * dE**2 * self.A**2
         conductivity = np.array([sigma.sum() for sigma in sigma_ii])
@@ -259,9 +309,9 @@ class Model:
         conductivity: float
         """
         coeff = e**3 * pi**2 / (3 * self.V)
-        c1 = -2 * self.dEx**2 * self.dExEy
-        c2 = self.dEx**2 * self.ddEy
-        c3 = self.dEy**2 * self.ddEx
+        c1 = -2 * self.dEs['dE_dx']**2 * self.dEs['ddE_dxdy']
+        c2 = self.dEs['dE_dx']**2 * self.dEs['ddE_dyy']
+        c3 = self.dEs['dE_dy']**2 * self.dEs['ddE_dxx']
 
         sigma_ij = coeff * (c1 + c2 + c3) * self.A**3
         conductivity = np.array([sigma.sum() for sigma in sigma_ij])
@@ -300,21 +350,21 @@ class Model:
 
 if __name__ == "__main__":
     N = Model(
-        hop_amps=[1.0, -0.2, 0.3],
-        frequency=0.0,
+        hopping_amplitudes=(1.0, -0.2, 0.3),
+        omega=0.0,
         eta=0.1,
-        mus=np.linspace(-4, 4, 200),
-        V=1.0,
+        mu_lims=(-4, 4, 200),
+        v=1.0,
         beta=100,
-        k_lims=(-pi, pi),
-        resolution=400,
+        resolution=200,
     )
 
     # Spectral weight
     peter_model, peter_density = "N32", 0.889
     mu_idx = find_nearest(N.get_density(), peter_density)
+    mu = N.mus[mu_idx]
 
-    N.plot_spectral_weight(mu=-0.1, electron_nb="N32")
+    N.plot_spectral_weight(mu=-0.1, electron_nb=peter_model)
 
     # Density
     # n = N.get_density()
