@@ -29,7 +29,7 @@ def timeit(func):
 
 
 @timeit
-def dE(hop_amps: tuple, kx: np.ndarray, ky: np.ndarray, mus: np.array) -> tuple:
+def dE(hop_amps: tuple, kx: np.ndarray, ky: np.ndarray, mu: np.array) -> tuple:
     """Outputs model's energies and it's derivatives.
 
     Parameters
@@ -43,7 +43,7 @@ def dE(hop_amps: tuple, kx: np.ndarray, ky: np.ndarray, mus: np.array) -> tuple:
     ky: np.ndarray, shape=(N, N), default=None
         ky space as a 2D array.
 
-    mus: np.array, size=M, default=None
+    mu: np.array, size=M, default=None
         Chemical potential values array.
 
     Returns
@@ -57,7 +57,7 @@ def dE(hop_amps: tuple, kx: np.ndarray, ky: np.ndarray, mus: np.array) -> tuple:
     b = -4 * t1 * cos(kx) * cos(ky)
     c = -2 * t2 * (cos(2 * kx) + cos(2 * ky))
 
-    E = np.array([a + b + c - mu for mu in mus])
+    E = np.array([a + b + c - i for i in mu])
 
     dEs = {
             'dE_dx': None,

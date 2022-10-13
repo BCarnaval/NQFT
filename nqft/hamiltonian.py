@@ -250,7 +250,8 @@ class Network:
                         + b_n_minus * delta(lgn, iter - 2)
                     )
 
-                    H_n[lgn, iter] = a_n * delta(lgn, iter) + b_n * delta(lgn, iter - 1)
+                    H_n[lgn, iter] = a_n * delta(lgn, iter) + \
+                        b_n * delta(lgn, iter - 1)
 
             H_phi = Qobj(H_n)
 
@@ -259,10 +260,13 @@ class Network:
             else:
                 pass
 
-        print(f"Lanczos hasn't " "converged with {iterations} iterations!\n")
+        print(f"Lanczos hasn't "
+              f"converged with {iterations} iterations!\n")
 
         return 0.0, basis(1)
 
 
 if __name__ == "__main__":
-    pass
+    N = Network(sites_nb=8)
+    H = N.get_hamiltonian(model="Hubbard", U=1, t=1)
+    print(H)
