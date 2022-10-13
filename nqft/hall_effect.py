@@ -44,7 +44,7 @@ def dE(hop_amps: tuple, kx: np.ndarray, ky: np.ndarray, mus: np.array) -> tuple:
         ky space as a 2D array.
 
     mus: np.array, size=M, default=None
-        ADD DESCRIPTION
+        Chemical potential values array.
 
     Returns
     -------
@@ -365,9 +365,3 @@ if __name__ == "__main__":
     mu = N.mus[mu_idx]
 
     N.plot_spectral_weight(mu=-0.1, electron_nb=peter_model)
-
-    # Density
-    # n = N.get_density()
-
-    # Hall number
-    # n_H = N.get_hall_nb()
