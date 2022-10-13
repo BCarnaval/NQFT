@@ -3,6 +3,8 @@ expression and operation on Hubbard hamiltonian and
 other Fock space operations.
 """
 
+import glob
+import numpy as np
 from qutip import Qobj
 
 
@@ -45,3 +47,46 @@ def delta(j: int, k: int) -> float:
     -: float (0.0 or 1.0)
     """
     return 1.0 if j == k else 0.0
+
+
+def read_fermi_arc(path="./nqft/Data/fermi_arc_data/") -> dict:
+    """Read Peter's data on spectral weight at Fermi
+    level for a given number of sites.
+
+    Parameters
+    ----------
+    path: str, default="./nqft/Data/fermi_arc_data/"
+        Path to data directory.
+
+    Returns
+    -------
+    arcs: dict, size=6
+        A dict containing all spectral functions.
+    """
+    files = glob.glob(f"{path}*.npy")
+    extensions = [file.split("_")[-1].split(".")[0] for file in files]
+    arcs = {ext: np.load(file) for ext, file in zip(extensions, files)}
+
+    return arcs
+
+
+def find_nearest(array, value):
+    """Finds index in given array of the closest value
+    of parameter 'value'.
+
+    Parameters
+    ----------
+    array: array-like, shape=(m, n), default=None
+        Array in which search for the value.
+
+    value: int, float, default=None
+        Value to search for in array.
+
+    Returns
+    -------
+    idx: int
+        Index at which user can find the closest value in array.
+    """
+    array = np.asarray(array)
+    idx = (np.abs(array - value)).argmin()
+    return idx
