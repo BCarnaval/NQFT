@@ -313,7 +313,8 @@ if __name__ == "__main__":
     # Spectral weight
     peter_model, peter_density = "N32", 0.889
     mu_idx = find_nearest(N.get_density(), peter_density)
-    N.plot_spectral_weight(N.mus[mu_idx], electron_nb="N32")
+
+    N.plot_spectral_weight(mu=-0.1, electron_nb="N32")
 
     # Density
     # n = N.get_density()
