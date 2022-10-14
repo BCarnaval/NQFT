@@ -70,6 +70,26 @@ def read_fermi_arc(path="./nqft/Data/fermi_arc_data/") -> dict:
     return arcs
 
 
+def flatten_fermi_arc(save_path="./nqft/Data/fermi_arc_data_1D/") -> None:
+    """Saves Peter's Fermi arc numpy 2D arrays files as 1D
+    arrays numpy files so they can be read in Rust/C.
+
+    Parameters
+    ----------
+    save_path: str, default="./nqft/Data/fermi_arc_data_1D/"
+        Path where to save flatten arrays.
+
+    Returns
+    -------
+    None
+    """
+    arcs_files = read_fermi_arc()
+    for (ext, array) in arcs_files.items():
+        flat_array = np.ravel(array)
+        np.save(f'{save_path}Akw_{ext}.npy', flat_array)
+    return
+
+
 def find_nearest(array, value):
     """Finds index in given array of the closest value
     of parameter 'value'.
@@ -90,3 +110,7 @@ def find_nearest(array, value):
     array = np.asarray(array)
     idx = (np.abs(array - value)).argmin()
     return idx
+
+
+if __name__ == "__main__":
+    flatten_fermi_arc()
