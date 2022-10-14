@@ -70,7 +70,8 @@ def read_fermi_arc(path="./nqft/Data/fermi_arc_data/") -> dict:
     return arcs
 
 
-def flatten_fermi_arc(save_path="./nqft/Data/fermi_arc_data_1D/") -> None:
+def flatten_fermi_arc(save_path="./nqft/Data/fermi_arc_data_1D/",
+                      type="text") -> None:
     """Saves Peter's Fermi arc numpy 2D arrays files as 1D
     arrays numpy files so they can be read in Rust/C.
 
@@ -79,6 +80,10 @@ def flatten_fermi_arc(save_path="./nqft/Data/fermi_arc_data_1D/") -> None:
     save_path: str, default="./nqft/Data/fermi_arc_data_1D/"
         Path where to save flatten arrays.
 
+    type: str, default="text"
+        Format in which save flattened arrays
+        (ex: type="npy" leads to .npy files)
+
     Returns
     -------
     None
@@ -86,7 +91,12 @@ def flatten_fermi_arc(save_path="./nqft/Data/fermi_arc_data_1D/") -> None:
     arcs_files = read_fermi_arc()
     for (ext, array) in arcs_files.items():
         flat_array = np.ravel(array)
-        np.save(f'{save_path}Akw_{ext}.npy', flat_array)
+        if type == "text":
+            np.savetxt(f'{save_path}Akw_{ext}.csv', flat_array)
+        elif type == "npy":
+            np.save(f'{save_path}Akw_{ext}', flat_array)
+        else:
+            print("No valid type provided. Please select between (npy, text).")
     return
 
 
