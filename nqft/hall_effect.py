@@ -86,7 +86,7 @@ def dE(hop_amps: tuple, kx: np.ndarray, ky: np.ndarray, mu: np.array) -> tuple:
         8 * t2 * cos(2 * ky)
 
     # Mixed derivative
-    dEs['dde_dxdy'] = 2 * t1 * (cos(kx + ky) - cos(kx - ky))
+    dEs['ddE_dxdy'] = 2 * t1 * (cos(kx + ky) - cos(kx - ky))
 
     return E, dEs
 
@@ -286,7 +286,7 @@ class Model:
         -------
         conductivity: float
         """
-        coeff = e**2 * pi / self.V
+        coeff = e**2 * pi / self.v
 
         if variable == "x":
             dE = self.dEs['dE_dx']
@@ -308,7 +308,7 @@ class Model:
         -------
         conductivity: float
         """
-        coeff = e**3 * pi**2 / (3 * self.V)
+        coeff = e**3 * pi**2 / (3 * self.v)
         c1 = -2 * self.dEs['dE_dx']**2 * self.dEs['ddE_dxdy']
         c2 = self.dEs['dE_dx']**2 * self.dEs['ddE_dyy']
         c3 = self.dEs['dE_dy']**2 * self.dEs['ddE_dxx']
@@ -343,7 +343,7 @@ class Model:
         """
         s_xy = self.sigma_ij()
         s_xx, s_yy = self.sigma_ii("x"), self.sigma_ii("y")
-        n_H = self.norm * self.V * s_xx * s_yy / (e * s_xy)
+        n_H = self.norm * self.v * s_xx * s_yy / (e * s_xy)
 
         return n_H
 
@@ -356,12 +356,14 @@ if __name__ == "__main__":
         mu_lims=(-4, 4, 200),
         v=1.0,
         beta=100,
-        resolution=200,
+        resolution=800,
     )
 
     # Spectral weight
-    peter_model, peter_density = "N32", 0.889
-    mu_idx = find_nearest(N.get_density(), peter_density)
-    mu = N.mus[mu_idx]
+    # peter_model, peter_density = "N32", 0.889
+    # mu_idx = find_nearest(N.get_density(), peter_density)
+    # mu = N.mus[mu_idx]
 
-    N.plot_spectral_weight(mu=-0.1, electron_nb=peter_model)
+    plt.plot(N.mus, N.get_hall_nb())
+    plt.show()
+    # N.plot_spectral_weight(mu=-0.1, electron_nb=peter_model)

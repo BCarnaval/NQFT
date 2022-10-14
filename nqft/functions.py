@@ -96,7 +96,8 @@ def flatten_fermi_arc(save_path="./nqft/Data/fermi_arc_data_1D/",
         elif type == "npy":
             np.save(f'{save_path}Akw_{ext}', flat_array)
         else:
-            print("No valid type provided. Please select between (npy, text).")
+            print("No valid type provided. "
+                  "Please select between ('npy' and 'text')")
     return
 
 
