@@ -356,14 +356,12 @@ if __name__ == "__main__":
         mu_lims=(-4, 4, 200),
         v=1.0,
         beta=100,
-        resolution=800,
+        resolution=200,
     )
 
     # Spectral weight
-    # peter_model, peter_density = "N32", 0.889
-    # mu_idx = find_nearest(N.get_density(), peter_density)
-    # mu = N.mus[mu_idx]
+    peter_model, peter_density = "N36", 0.889
+    mu_idx = find_nearest(N.get_density(), peter_density)
+    mu = N.mus[mu_idx]
 
-    plt.plot(N.mus, N.get_hall_nb())
-    plt.show()
-    # N.plot_spectral_weight(mu=-0.1, electron_nb=peter_model)
+    N.plot_spectral_weight(mu=-2, electron_nb=peter_model)
