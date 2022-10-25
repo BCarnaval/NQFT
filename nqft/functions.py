@@ -3,7 +3,6 @@ expression and operation on Hubbard hamiltonian and
 other Fock space operations.
 """
 
-import glob
 import numpy as np
 from qutip import Qobj
 
@@ -63,8 +62,15 @@ def read_fermi_arc(path="./nqft/Data/fermi_arc_data/") -> dict:
     arcs: dict, size=6
         A dict containing all spectral functions.
     """
-    files = glob.glob(f"{path}*.npy")
-    extensions = [file.split("_")[-1].split(".")[0] for file in files]
+    files = [
+            f"{path}Akw_N24.npy",
+            f"{path}Akw_N28.npy",
+            f"{path}Akw_N30.npy",
+            f"{path}Akw_N32.npy",
+            f"{path}Akw_coords.npy"
+            ]
+
+    extensions = ["N24", "N28", "N30", "N32", "coords"]
     arcs = {ext: np.load(file) for ext, file in zip(extensions, files)}
 
     return arcs

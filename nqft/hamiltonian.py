@@ -38,7 +38,7 @@ class Network:
         self.creation = create(2)
         self.anihilation = destroy(2)
         self.number = num(2)
-        self.I = identity(2)
+        self.idty = identity(2)
         return
 
     def get_state(self, state: int, type="ket") -> Qobj:
@@ -103,7 +103,7 @@ class Network:
 
         Examples
         --------
-        >>> N = Network(sites_nb=1)
+        >>> N = Network(sites_nb=4)
         >>> N.get_hamiltonian(model="Hubbard", U=1, t=1)
         >>> Quantum object: dims = [[2, 2, 2, 2, 2, 2, 2, 2],
         [2, 2, 2, 2, 2, 2, 2, 2]], shape = (256, 256), type = oper,
@@ -122,7 +122,7 @@ class Network:
 
             for idx in track(range(self.sites), description="Hamitonian"):
                 sites = [i for i in range(self.sites)]
-                ops_1 = [self.I for i in range(self.sites * 2)]
+                ops_1 = [self.idty for i in range(self.sites * 2)]
 
                 ops_1[idx] = self.number
                 ops_1[self.sites + idx] = self.number
@@ -131,8 +131,8 @@ class Network:
                 H1 += tensor(*ops_1)
 
                 for ext in sites:
-                    ops_2_up = [self.I for i in range(self.sites * 2)]
-                    ops_2_down = [self.I for i in range(self.sites * 2)]
+                    ops_2_up = [self.idty for i in range(self.sites * 2)]
+                    ops_2_down = [self.idty for i in range(self.sites * 2)]
 
                     ops_2_up[idx] = self.creation
                     ops_2_up[ext] = self.anihilation
@@ -267,6 +267,7 @@ class Network:
 
 
 if __name__ == "__main__":
-    N = Network(sites_nb=8)
+    N = Network(sites_nb=2)
     H = N.get_hamiltonian(model="Hubbard", U=1, t=1)
     print(H)
+

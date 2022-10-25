@@ -69,24 +69,24 @@ def dE(hop_amps: tuple, kx: np.ndarray, ky: np.ndarray, mu: np.array) -> tuple:
 
     # Ex derivatives
     dEs['dE_dx'] = 2 * t * sin(kx) + \
-        2 * t1 * (sin(kx + ky) + sin(kx - ky)) + \
+        4 * t1 * sin(kx) * cos(ky) + \
         4 * t2 * sin(2 * kx)
 
     dEs['ddE_dxx'] = 2 * t * cos(kx) + \
-        2 * t1 * (cos(kx + ky) + cos(kx - ky)) + \
+        4 * t1 * cos(kx) * cos(ky) + \
         8 * t2 * cos(2 * kx)
 
     # Ey derivatives
     dEs['dE_dy'] = 2 * t * sin(ky) + \
-        2 * t1 * (sin(kx + ky) - sin(kx - ky)) + \
+        4 * t1 * cos(kx) * cos(ky) + \
         4 * t2 * sin(2 * ky)
 
     dEs['ddE_dyy'] = 2 * t * cos(ky) + \
-        2 * t1 * (cos(kx + ky) + cos(kx - ky)) + \
+        4 * t1 * cos(kx) * cos(ky) + \
         8 * t2 * cos(2 * ky)
 
     # Mixed derivative
-    dEs['ddE_dxdy'] = 2 * t1 * (cos(kx + ky) - cos(kx - ky))
+    dEs['ddE_dxdy'] = -4 * t1 * sin(kx) * sin(ky)
 
     return E, dEs
 
@@ -152,6 +152,7 @@ class Model:
     mu_lims: tuple[float]
     v: float
     beta: float
+    use_peter: bool
 
     # Phase space init
     k_x: np.ndarray = field(init=False, repr=False)
@@ -178,29 +179,49 @@ class Model:
     def __post_init__(self) -> None:
         """Computing post-init class attributes.
         """
-        # Chemical potential array
-        self.mus = np.linspace(*self.mu_lims)
-
         # Matplotlib instances (figure and subplots)
         self.fig, self.axes = plt.subplots(ncols=2, tight_layout=True)
-
-        # Phase space grid(s)
-        dks = (self.k_lims[1] - self.k_lims[0]) / self.resolution
-        ks = arange(*self.k_lims, dks)
-        self.k_x, self.k_y = meshgrid(ks, ks)
-        self.norm = 1 / ks.shape[0] / ks.shape[0]
-
-        # Energies and it's derivatives (firsts and seconds)
-        self.E, self.dEs = dE(
-                                self.hopping_amplitudes,
-                                self.k_x,
-                                self.k_y,
-                                self.mus
-                                )
+        self.A_Peter = read_fermi_arc()
 
         # Spectral functions (Non-interacting model + Peter's)
-        self.A_Peter = read_fermi_arc()
-        self.A = get_spectral_weight(self.omega, self.eta, self.E)
+        if self.use_peter:
+            dict = read_fermi_arc()
+            dict.pop("coords")
+            self.A = np.array([array for array in dict.values()])
+            self.mus = np.array([-1.25, -0.8, -0.5, -0.1])
+
+            # Phase space grid(s)
+            ks = arange(-pi, pi, 2*pi/200)
+            self.k_x, self.k_y = meshgrid(ks, ks)
+            self.norm = 1 / ks.shape[0] / ks.shape[0]
+
+            # Energies and it's derivatives (firsts and seconds)
+            self.E, self.dEs = dE(
+                                    self.hopping_amplitudes,
+                                    self.k_x,
+                                    self.k_y,
+                                    self.mus
+                                    )
+
+        else:
+            # Chemical potential array
+            self.mus = np.linspace(*self.mu_lims)
+
+            # Phase space grid(s)
+            dks = (self.k_lims[1] - self.k_lims[0]) / self.resolution
+            ks = arange(*self.k_lims, dks)
+            self.k_x, self.k_y = meshgrid(ks, ks)
+            self.norm = 1 / ks.shape[0] / ks.shape[0]
+
+            # Energies and it's derivatives (firsts and seconds)
+            self.E, self.dEs = dE(
+                                    self.hopping_amplitudes,
+                                    self.k_x,
+                                    self.k_y,
+                                    self.mus
+                                    )
+
+            self.A = get_spectral_weight(self.omega, self.eta, self.E)
 
         return
 
@@ -272,7 +293,7 @@ class Model:
 
         return
 
-    def sigma_ii(self, variable: str) -> list:
+    def sigma_ii(self, variable: str) -> np.array:
         """Computing longitudinal conductivity at zero temperature
         in the zero-frequency limit when interband transitions can be
         neglected.
@@ -299,7 +320,7 @@ class Model:
 
         return conductivity
 
-    def sigma_ij(self) -> list:
+    def sigma_ij(self) -> np.array:
         """Computing transversal conductivity at zero temperature
         in the zero-frequency limit when interband transitions can be
         neglected.
@@ -309,7 +330,7 @@ class Model:
         conductivity: float
         """
         coeff = e**3 * pi**2 / (3 * self.v)
-        c1 = -2 * self.dEs['dE_dx']**2 * self.dEs['ddE_dxdy']
+        c1 = -2 * self.dEs['dE_dx'] * self.dEs['dE_dy'] * self.dEs['ddE_dxdy']
         c2 = self.dEs['dE_dx']**2 * self.dEs['ddE_dyy']
         c3 = self.dEs['dE_dy']**2 * self.dEs['ddE_dxx']
 
@@ -319,7 +340,7 @@ class Model:
         return conductivity
 
     @timeit
-    def get_density(self) -> list:
+    def get_density(self) -> np.array:
         """Computes electron density.
 
         Returns
@@ -333,7 +354,7 @@ class Model:
         return density
 
     @timeit
-    def get_hall_nb(self) -> list:
+    def get_hall_nb(self) -> np.array:
         """Computes Hall number.
 
         Returns
@@ -350,18 +371,37 @@ class Model:
 
 if __name__ == "__main__":
     N = Model(
-        hopping_amplitudes=(1.0, -0.2, 0.3),
+        hopping_amplitudes=(1.0, -0.3, 0.2),
         omega=0.0,
-        eta=0.1,
-        mu_lims=(-4, 4, 200),
+        eta=0.05,
+        mu_lims=(-4, 4, 400),
         v=1.0,
         beta=100,
-        resolution=200,
+        resolution=800,
+        use_peter=False
     )
-
     # Spectral weight
-    peter_model, peter_density = "N36", 0.889
-    mu_idx = find_nearest(N.get_density(), peter_density)
-    mu = N.mus[mu_idx]
+    # peter_model, peter_density = "N36", 0.889
+    # mu_idx = find_nearest(N.get_density(), peter_density)
+    # mu = N.mus[mu_idx]
 
-    N.plot_spectral_weight(mu=-2, electron_nb=peter_model)
+    # p_densities = 1 - np.array([0.667, 0.778, 0.833, 0.889])
+    # N.plot_spectral_weight(mu=-1.25, electron_nb="N24")
+
+    fig, ax = plt.subplots()
+
+    density = N.get_density()
+    hall_nb = -2 * N.get_hall_nb()  # Verifier la provenance du facteur -2
+
+    # for x, n, n_h in zip(N.mus, p_densities, hall_nb):
+        # ax.text(x, n + 0.25, "({:.2f}, {:.2f})".format(x, n))
+        # ax.text(n, n_h + 0.25, "({:.2f}, {:.2f})".format(n, n_h))
+
+    # ax.plot(N.mus, p_densities, ".-", label="Density $n$")
+    ax.plot(1 - density, hall_nb, ".-", label="$n_H(p)$")
+    ax.set_xlabel("Hole doping $p$")
+    ax.set_ylabel("Hall number $n_H$")
+    ax.set_ylim([-2, 2])
+
+    plt.legend()
+    plt.show()
