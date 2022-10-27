@@ -2,7 +2,7 @@
 __pycache__/
 *.py[cod]
 *$py.class
-lien_rencontre.txt
+liens_rencontres.txt
 
 # MacOS meta-data (Desktop Services Store)
 .DS_Store

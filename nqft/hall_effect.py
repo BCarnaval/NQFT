@@ -60,12 +60,12 @@ def dE(hop_amps: tuple, kx: np.ndarray, ky: np.ndarray, mu: np.array) -> tuple:
     E = np.array([a + b + c - i for i in mu])
 
     dEs = {
-            'dE_dx': None,
-            'ddE_dxx': None,
-            'dE_dy': None,
-            'ddE_dyy': None,
-            'ddE_dxdy': None
-            }
+        'dE_dx': None,
+        'ddE_dxx': None,
+        'dE_dy': None,
+        'ddE_dyy': None,
+        'ddE_dxdy': None
+    }
 
     # Ex derivatives
     dEs['dE_dx'] = 2 * t * sin(kx) + \
@@ -197,11 +197,11 @@ class Model:
 
             # Energies and it's derivatives (firsts and seconds)
             self.E, self.dEs = dE(
-                                    self.hopping_amplitudes,
-                                    self.k_x,
-                                    self.k_y,
-                                    self.mus
-                                    )
+                self.hopping_amplitudes,
+                self.k_x,
+                self.k_y,
+                self.mus
+            )
 
         else:
             # Chemical potential array
@@ -215,11 +215,11 @@ class Model:
 
             # Energies and it's derivatives (firsts and seconds)
             self.E, self.dEs = dE(
-                                    self.hopping_amplitudes,
-                                    self.k_x,
-                                    self.k_y,
-                                    self.mus
-                                    )
+                self.hopping_amplitudes,
+                self.k_x,
+                self.k_y,
+                self.mus
+            )
 
             self.A = get_spectral_weight(self.omega, self.eta, self.E)
 
@@ -243,11 +243,11 @@ class Model:
 
         # Plot spectral weight
         spectral = self.axes[0].pcolormesh(
-                    self.k_x,
-                    self.k_y,
-                    spectral_mu,
-                    cmap=cm.Blues,
-                    label="$\\mu = {:.2f}$".format(self.mus[idx]),
+            self.k_x,
+            self.k_y,
+            spectral_mu,
+            cmap=cm.Blues,
+            label="$\\mu = {:.2f}$".format(self.mus[idx]),
         )
         self.fig.colorbar(spectral)
 
@@ -263,17 +263,17 @@ class Model:
 
             # Plot one of Peter's spectral weight
             self.axes[1].pcolormesh(
-                                self.k_x,
-                                self.k_y,
-                                spectral_mu,
-                                cmap=cm.Blues
+                self.k_x,
+                self.k_y,
+                spectral_mu,
+                cmap=cm.Blues
             )
             spectral_peter = self.axes[1].pcolormesh(
-                            kx_g,
-                            ky_g,
-                            self.A_Peter[electron_nb],
-                            cmap=cm.Oranges,
-                            alpha=0.6
+                kx_g,
+                ky_g,
+                self.A_Peter[electron_nb],
+                cmap=cm.Oranges,
+                alpha=0.6
             )
             self.fig.colorbar(spectral_peter)
 
@@ -282,9 +282,9 @@ class Model:
         axes_labels = ["$-\\pi$", "$0$", "$\\pi$"]
 
         # Axes and ticks
+        self.axes[0].set_ylabel("$k_y$")
         for idx in range(2):
             self.axes[idx].set_xlabel("$k_x$")
-            self.axes[idx].set_ylabel("$k_y$")
             self.axes[idx].set_xticks(ticks=[min, 0, max], labels=axes_labels)
             self.axes[idx].set_yticks(ticks=[min, 0, max], labels=axes_labels)
 
@@ -374,30 +374,31 @@ if __name__ == "__main__":
         hopping_amplitudes=(1.0, -0.3, 0.2),
         omega=0.0,
         eta=0.1,
-        mu_lims=(-4, 4, 200),
+        mu_lims=(-4, 4, 400),
         v=1.0,
         beta=100,
-        resolution=200,
+        resolution=400,
         use_peter=False
     )
 
-    N.plot_spectral_weight(mu=-1.3, electron_nb="N24")
+    N.plot_spectral_weight(mu=-0.4, electron_nb="N32")
+
     # Spectral weight
     # peter_model, peter_density = "N36", 0.889
     # mu_idx = find_nearest(N.get_density(), peter_density)
     # mu = N.mus[mu_idx]
 
     # p_densities = 1 - np.array([0.667, 0.778, 0.833, 0.889])
-    # N.plot_spectral_weight(mu=-1.25, electron_nb="N24")
 
+    # Plot Hall number
     # fig, ax = plt.subplots()
     #
     # density = N.get_density()
     # hall_nb = -2 * N.get_hall_nb()  # Verifier la provenance du facteur -2
 
     # for x, n, n_h in zip(N.mus, p_densities, hall_nb):
-        # ax.text(x, n + 0.25, "({:.2f}, {:.2f})".format(x, n))
-        # ax.text(n, n_h + 0.25, "({:.2f}, {:.2f})".format(n, n_h))
+    # ax.text(x, n + 0.25, "({:.2f}, {:.2f})".format(x, n))
+    # ax.text(n, n_h + 0.25, "({:.2f}, {:.2f})".format(n, n_h))
 
     # ax.plot(N.mus, p_densities, ".-", label="Density $n$")
     # ax.plot(1 - density, hall_nb, ".-", label="$n_H(p)$")
