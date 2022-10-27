@@ -3,15 +3,22 @@ experimentation.
 """
 
 import numpy as np
-from pyqcm import *
-from pyqcm.cdmft import cdmft
+from pyqcm import (
+        new_cluster_model,
+        add_cluster,
+        lattice_model,
+        interaction_operator,
+        hopping_operator,
+        sectors,
+        set_parameters
+        )
 from pyqcm.draw_operator import draw_operator
 from pyqcm.spectral import plot_dispersion, G_dispersion
 
 
 def build_matrix(shape: tuple) -> list:
     """Gives a coordinates matrix of a cluster having
-    shape[0]*shape[1] sites.
+    shaplattie[0]*shape[1] sites.
 
     Parameters
     ----------
@@ -31,11 +38,11 @@ def build_matrix(shape: tuple) -> list:
     [-1  1  0]
     [ 0  1  0]]
     """
-    array, I = [], np.identity(3)
+    array, idty = [], np.identity(3)
     for i in range(shape[0]):
         for j in range(shape[1]):
-            elem = -I[0] + j * I[0]
-            array.append(elem + i * I[1])
+            elem = -idty[0] + j * idty[0]
+            array.append(elem + i * idty[1])
 
     return np.array(array, dtype=np.int64)
 
@@ -47,12 +54,15 @@ def main(shape: tuple) -> None:
     bath_nb = 0
 
     new_cluster_model(
-        "clus", elem_nb, bath_nb, [[i for i in range(1, elem_nb + 1 + bath_nb)]]
+        "clus",
+        elem_nb,
+        bath_nb,
+        [[i for i in range(1, elem_nb + 1 + bath_nb)]]
     )
 
     add_cluster("clus", [0, 0, 0], matrix)
 
-    lattice_model(f"2D_{elem_nb}", [[2, 0, 0], [0, 2, 0]])
+    lattice_model(f"2D_{elem_nb}_sites", [[2, 0, 0], [0, 2, 0]])
 
     interaction_operator("U", link=([0, 1, 0]))
     hopping_operator("t", [1, 0, 0], -1)
@@ -66,9 +76,11 @@ def main(shape: tuple) -> None:
             """
     )
 
-    plot_dispersion(quadrant=False)
+    draw_operator("t")
+
+    # plot_dispersion(quadrant=False)
     return
 
 
 if __name__ == "__main__":
-    main(shape=(2, 2))
+    main(shape=(3, 3))

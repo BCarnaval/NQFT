@@ -373,13 +373,15 @@ if __name__ == "__main__":
     N = Model(
         hopping_amplitudes=(1.0, -0.3, 0.2),
         omega=0.0,
-        eta=0.05,
-        mu_lims=(-4, 4, 400),
+        eta=0.1,
+        mu_lims=(-4, 4, 200),
         v=1.0,
         beta=100,
-        resolution=800,
+        resolution=200,
         use_peter=False
     )
+
+    N.plot_spectral_weight(mu=-1.3, electron_nb="N24")
     # Spectral weight
     # peter_model, peter_density = "N36", 0.889
     # mu_idx = find_nearest(N.get_density(), peter_density)
@@ -388,20 +390,20 @@ if __name__ == "__main__":
     # p_densities = 1 - np.array([0.667, 0.778, 0.833, 0.889])
     # N.plot_spectral_weight(mu=-1.25, electron_nb="N24")
 
-    fig, ax = plt.subplots()
-
-    density = N.get_density()
-    hall_nb = -2 * N.get_hall_nb()  # Verifier la provenance du facteur -2
+    # fig, ax = plt.subplots()
+    #
+    # density = N.get_density()
+    # hall_nb = -2 * N.get_hall_nb()  # Verifier la provenance du facteur -2
 
     # for x, n, n_h in zip(N.mus, p_densities, hall_nb):
         # ax.text(x, n + 0.25, "({:.2f}, {:.2f})".format(x, n))
         # ax.text(n, n_h + 0.25, "({:.2f}, {:.2f})".format(n, n_h))
 
     # ax.plot(N.mus, p_densities, ".-", label="Density $n$")
-    ax.plot(1 - density, hall_nb, ".-", label="$n_H(p)$")
-    ax.set_xlabel("Hole doping $p$")
-    ax.set_ylabel("Hall number $n_H$")
-    ax.set_ylim([-2, 2])
+    # ax.plot(1 - density, hall_nb, ".-", label="$n_H(p)$")
+    # ax.set_xlabel("Hole doping $p$")
+    # ax.set_ylabel("Hall number $n_H$")
+    # ax.set_ylim([-2, 2])
 
-    plt.legend()
-    plt.show()
+    # plt.legend()
+    # plt.show()
