@@ -1,9 +1,9 @@
 <h1 align="center">NQFT (Numerical Quantum Field Theory)</h1>
 
 <div align="center">
-  <img width="180" height="180" src="./figs/3x4_12n_1.0_U.png">
+  <img width="780" height="380" src="./figs/3x4_12n_1.0_U.png">
   <br />
-  <figcaption>Fig.1 - Schéma d'une super-période, Charlebois Maxime.</figcaption>
+  <figcaption>Fig.1 - Spectral function in the Brillouin zone (2D) for 3x4 clusters.</figcaption>
 </div>
 
 <br />
