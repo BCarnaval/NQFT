@@ -209,7 +209,7 @@ def plot_spectrum(shape: tuple[int], electrons: int, hops: list[float],
     spectral = np.load(path_to_file)
 
     # Fig title
-    title = "{}/{} fill, U={}, t's=[{}, {}, {}], $\eta$={}".format(
+    title = "{}/{} fill, U={}, t=[{}, {}, {}], $\eta$={}".format(
         electrons,
         shape[0]*shape[1],
         U,
@@ -228,7 +228,7 @@ def plot_spectrum(shape: tuple[int], electrons: int, hops: list[float],
     fig.colorbar(low_interaction)
 
     # Fig title
-    title_peter = f"{peters[1:]}/36 fill, U=8.0, t's=[1, -0.3, 0.2], $\eta=0.1$"
+    title_peter = f"{peters[1:]}/36 fill, U=8.0, t=[1, -0.3, 0.2], $\eta=0.1$"
 
     axes[1].set_title(title_peter)
 
@@ -261,7 +261,7 @@ def plot_spectrum(shape: tuple[int], electrons: int, hops: list[float],
 
     # Show figure's plot
     dim = f"{shape[0]}x{shape[1]}"
-    plt.savefig(f"./nqft/Data/model_{dim}/figs/{dim}_{electrons}n_{U}_U.pdf")
+    plt.savefig(f"./nqft/Data/model_{dim}/figs/{dim}_{electrons}n_{U}_U.png")
     plt.show()
 
     return
@@ -269,7 +269,7 @@ def plot_spectrum(shape: tuple[int], electrons: int, hops: list[float],
 
 if __name__ == "__main__":
     eta, model_shape, electrons = 0.1, (3, 4), 12
-    U, hoppings = 8.0, [1.0, -0.3, 0.2]
+    U, hoppings = 1.0, [1.0, -0.3, 0.2]
 
     # Build model frame
     density, model_path = setup_model(
