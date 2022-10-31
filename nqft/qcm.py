@@ -90,7 +90,7 @@ def setup_model(shape: tuple[int], e_nbr: int, U: float, hops: list[float],
         print(f'Storing model inside dir: {model_path}/')
 
     # Module related paths
-    file = f'model_{shape[0]}x{shape[1]}'
+    file = f'model_{shape[0]}x{shape[1]}_n{e_nbr}'
     module_format = '.'.join(model_path.split('/')[1:])
 
     if overwrite:
@@ -113,15 +113,12 @@ def setup_model(shape: tuple[int], e_nbr: int, U: float, hops: list[float],
         # Hopping operators (t, tp, tpp)
         hopping_operator(name="t", link=[1, 0, 0], amplitude=-1)
         hopping_operator(name="t", link=[0, 1, 0], amplitude=-1)
-        draw_operator('t')
 
         hopping_operator(name="tp", link=[1, 1, 0], amplitude=-1)
         hopping_operator(name="tp", link=[-1, 1, 0], amplitude=-1)
-        draw_operator('tp')
 
         hopping_operator(name="tpp", link=[2, 0, 0], amplitude=-1)
         hopping_operator(name="tpp", link=[0, 2, 0], amplitude=-1)
-        draw_operator('tpp')
 
         # Setting target sectors
         sectors(R=0, N=e_nbr, S=0)
@@ -171,8 +168,8 @@ def run_model(model_path: str, densities: tuple[int], eta: float,
     density = densities[0] / densities[1]
 
     # Initializing data files path
-    dos_file = f'{model_path}/dos_{densities[0]}.tsv'
-    spectrum_file = f'{model_path}/spectrum_{densities[0]}'
+    dos_file = f'{model_path}/dos_n{densities[0]}.tsv'
+    spectrum_file = f'{model_path}/spectrum_n{densities[0]}'
 
     if overwrite or not os.path.isfile(dos_file):
         # Finding chemical potential using DoS (density of states)
@@ -194,11 +191,12 @@ def run_model(model_path: str, densities: tuple[int], eta: float,
     return
 
 
-def plot_spectrum(shape: tuple[int], electrons: int, peters: str):
+def plot_spectrum(shape: tuple[int], electrons: int, hops: list[float],
+                  U: float, eta: float, peters: str) -> None:
     """Docs
     """
     # Init matplotlib figure
-    fig, axes = plt.subplots(ncols=2, tight_layout=True)
+    fig, axes = plt.subplots(ncols=2, tight_layout=True, figsize=(9, 5))
 
     # Momentum space grids
     momentums = np.linspace(-np.pi, np.pi, 200)
@@ -207,11 +205,17 @@ def plot_spectrum(shape: tuple[int], electrons: int, peters: str):
     # Get spectral functions arrays
     peter_array = read_fermi_arc()[peters]
     file = f'model_{shape[0]}x{shape[1]}'
-    path_to_file = f'./nqft/Data/{file}/spectrum_{electrons}.npy'
+    path_to_file = f'./nqft/Data/{file}/spectrum_n{electrons}.npy'
     spectral = np.load(path_to_file)
 
     # Fig title
-    title = "$n = {}$".format(electrons)
+    title = "{}/{} fill, U={}, t's=[{}, {}, {}], $\eta$={}".format(
+        electrons,
+        shape[0]*shape[1],
+        U,
+        *hops,
+        eta
+    )
     axes[0].set_title(title)
 
     # Plot spectral weight
@@ -224,7 +228,8 @@ def plot_spectrum(shape: tuple[int], electrons: int, peters: str):
     fig.colorbar(low_interaction)
 
     # Fig title
-    title_peter = "Peter's model: {}".format(peters)
+    title_peter = f"{peters[1:]}/36 fill, U=8.0, t's=[1, -0.3, 0.2], $\eta=0.1$"
+
     axes[1].set_title(title_peter)
 
     # Plot one of Peter's spectral weight
@@ -255,6 +260,8 @@ def plot_spectrum(shape: tuple[int], electrons: int, peters: str):
         axes[idx].set_yticks(ticks=[min, 0, max], labels=axes_labels)
 
     # Show figure's plot
+    dim = f"{shape[0]}x{shape[1]}"
+    plt.savefig(f"./nqft/Data/model_{dim}/figs/{dim}_{electrons}n_{U}_U.pdf")
     plt.show()
 
     return
@@ -262,7 +269,7 @@ def plot_spectrum(shape: tuple[int], electrons: int, peters: str):
 
 if __name__ == "__main__":
     eta, model_shape, electrons = 0.1, (3, 4), 12
-    U, hoppings = 1.0, [1.0, -0.3, 0.2]
+    U, hoppings = 8.0, [1.0, -0.3, 0.2]
 
     # Build model frame
     density, model_path = setup_model(
@@ -283,4 +290,10 @@ if __name__ == "__main__":
     )
 
     # Compare low interaction to Peter's
-    plot_spectrum(shape=model_shape, electrons=electrons, peters='N32')
+    plot_spectrum(
+        shape=model_shape,
+        electrons=electrons,
+        hops=hoppings,
+        U=U,
+        eta=eta,
+        peters='N32')
