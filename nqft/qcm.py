@@ -77,6 +77,13 @@ def setup_model(shape: tuple[int], e_nbr: int, U: float, hops: list[float],
         Fermionic density of the system (nbr of fermions / nbr of sites).
     model_path: str
         Model directory in which store related data files (spectrum, freqs)
+
+    Examples
+    --------
+    >>> setup_model(shape=(3, 4), e_nbr=10, U=1.0, hops=[1, -0.3, 0.2])
+    >>> Number of OpenMP threads = 8
+    Storing model inside dir: ./nqft/Data/model_3x4/
+    (0.8333333333333334, './nqft/Data/model_3x4')
     """
     matrix = build_matrix(shape)
     elem_nb = shape[0] * shape[1]
