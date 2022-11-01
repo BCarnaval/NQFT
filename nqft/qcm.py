@@ -235,11 +235,11 @@ def plot_spectrum(shape: tuple[int], electrons: int, hops: list[float],
     axes[0].set_title(title)
 
     # Plot spectral weight
-    low_interaction = axes[0].pcolormesh(
+    low_interaction = axes[0].contourf(
         k_x,
         k_y,
         spectral,
-        cmap=cm.Blues
+        cmap=cm.Purples
     )
     fig.colorbar(low_interaction)
 
@@ -251,17 +251,19 @@ def plot_spectrum(shape: tuple[int], electrons: int, hops: list[float],
     axes[1].set_title(title_peter)
 
     # Plot one of Peter's spectral weight
-    axes[1].pcolormesh(
-        k_x,
-        k_y,
-        spectral,
-        cmap=cm.Blues
-    )
-    peter_spectral = axes[1].pcolormesh(
+    peter_spectral = axes[1].contourf(
         k_x,
         k_y,
         peter_array,
-        cmap=cm.Oranges,
+        cmap=cm.Greens,
+        alpha=1.0
+    )
+
+    axes[1].contourf(
+        k_x,
+        k_y,
+        spectral,
+        cmap=cm.Purples,
         alpha=0.6
     )
     fig.colorbar(peter_spectral)
@@ -283,43 +285,44 @@ def plot_spectrum(shape: tuple[int], electrons: int, hops: list[float],
         plt.savefig(
             f"./nqft/Data/model_{dim}/figs/{dim}_{electrons}n_U{U_str}.pdf")
 
-    plt.show()
+    # plt.show()
 
     return
 
 
 if __name__ == "__main__":
     # Model params
-    shift = True
+    shift = False
     eta, hoppings = 0.1, [1.0, -0.3, 0.2]
-    shape, e_number, interaction = (3, 4), 8, 8.0
+    shape, e_number, interaction = (2, 2), 4, 1.0
 
-    # Build model frame
-    density, model_path = setup_model(
-        shape=shape,
-        e_nbr=e_number,
-        U=interaction,
-        hops=hoppings,
-        shift=shift,
-        overwrite=True
-    )
-
-    # Actual computing
-    run_model(
-        model_path=model_path,
-        densities=(e_number, shape[0] * shape[1]),
-        U=interaction,
-        eta=eta,
-        overwrite=True
-    )
-
-    # # Compare low interaction to Peter's
-    # plot_spectrum(
+    # # Build model frame
+    # density, model_path = setup_model(
     #     shape=shape,
-    #     electrons=e_number,
+    #     e_nbr=e_number,
+    #     U=interaction,
     #     hops=hoppings,
+    #     shift=shift,
+    #     overwrite=True
+    # )
+    #
+    # # Actual computing
+    # run_model(
+    #     model_path=model_path,
+    #     densities=(e_number, shape[0] * shape[1]),
     #     U=interaction,
     #     eta=eta,
-    #     peters='N24',
-    #     save=True
+    #     overwrite=True
     # )
+
+    # Compare low interaction to Peter's
+    for i in [0.5, 1.0, 2.0, 8.0]:
+        plot_spectrum(
+            shape=shape,
+            electrons=e_number,
+            hops=hoppings,
+            U=i,
+            eta=eta,
+            peters='N32',
+            save=True
+        )

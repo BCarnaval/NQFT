@@ -188,7 +188,7 @@ class Model:
             dict = read_fermi_arc()
             dict.pop("coords")
             self.A = np.array([array for array in dict.values()])
-            self.mus = np.array([-1.25, -0.8, -0.5, -0.1])
+            self.mus = np.array([-1.25, -0.8, -0.5, -0.1, 0.3])
 
             # Phase space grid(s)
             ks = arange(-pi, pi, 2*pi/200)

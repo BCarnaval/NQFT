@@ -63,14 +63,15 @@ def read_fermi_arc(path="./nqft/Data/fermi_arc_data/") -> dict:
         A dict containing all spectral functions.
     """
     files = [
-            f"{path}Akw_N24.npy",
-            f"{path}Akw_N28.npy",
-            f"{path}Akw_N30.npy",
-            f"{path}Akw_N32.npy",
-            f"{path}Akw_coords.npy"
-            ]
+        f"{path}Akw_N24.npy",
+        f"{path}Akw_N28.npy",
+        f"{path}Akw_N30.npy",
+        f"{path}Akw_N32.npy",
+        f"{path}Akw_N36.npy",
+        f"{path}Akw_coords.npy"
+    ]
 
-    extensions = ["N24", "N28", "N30", "N32", "coords"]
+    extensions = ["N24", "N28", "N30", "N32", "N36", "coords"]
     arcs = {ext: np.load(file) for ext, file in zip(extensions, files)}
 
     return arcs
