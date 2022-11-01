@@ -292,7 +292,7 @@ if __name__ == "__main__":
     # Model params
     shift = True
     eta, hoppings = 0.1, [1.0, -0.3, 0.2]
-    shape, e_number, interaction = (3, 4), 10, 1.0
+    shape, e_number, interaction = (3, 4), 8, 8.0
 
     # Build model frame
     density, model_path = setup_model(
@@ -313,12 +313,13 @@ if __name__ == "__main__":
         overwrite=True
     )
 
-    # Compare low interaction to Peter's
-    plot_spectrum(
-        shape=shape,
-        electrons=e_number,
-        hops=hoppings,
-        U=interaction,
-        eta=eta,
-        peters='N32',
-        save=True)
+    # # Compare low interaction to Peter's
+    # plot_spectrum(
+    #     shape=shape,
+    #     electrons=e_number,
+    #     hops=hoppings,
+    #     U=interaction,
+    #     eta=eta,
+    #     peters='N24',
+    #     save=True
+    # )
