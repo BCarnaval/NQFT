@@ -283,21 +283,16 @@ def plot_spectrum(shape: tuple[int], electrons: int, hops: list[float],
         plt.savefig(
             f"./nqft/Data/model_{dim}/figs/{dim}_{electrons}n_U{U_str}.pdf")
 
-    # plt.show()
+    plt.show()
 
     return
 
 
 if __name__ == "__main__":
     # Model params
+    shift = True
     eta, hoppings = 0.1, [1.0, -0.3, 0.2]
-    shape_x, shape_y, e_number, interaction, shift = sys.argv[1:]
-    shape = (int(shape_x), int(shape_y))
-    e_number = int(e_number)
-    interaction = float(interaction)
-    shift = bool(int(shift))
-
-    print(shape, e_number, interaction, shift)
+    shape, e_number, interaction = (3, 4), 10, 1.0
 
     # Build model frame
     density, model_path = setup_model(
