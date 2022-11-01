@@ -3,7 +3,9 @@ experimentation.
 """
 
 import os
+import sys
 import numpy as np
+from rich import print
 import importlib as iplib
 from matplotlib import cm
 import matplotlib.pyplot as plt
@@ -17,7 +19,6 @@ from pyqcm import (
     sectors
 )
 from pyqcm.spectral import DoS, mdc
-from pyqcm.draw_operator import draw_operator
 from pyqcm import new_model_instance, set_parameters
 
 from nqft.functions import read_fermi_arc
@@ -90,6 +91,8 @@ def setup_model(shape: tuple[int], e_nbr: int, U: float, hops: list[float],
     density = e_nbr / elem_nb
 
     # Make model directory if it doesn't exist
+    U_f_to_str = str(U).split('.')
+    U_str = "".join(U_f_to_str if U_f_to_str[-1] != '0' else U_f_to_str[:-1])
     model_path = f'./nqft/Data/model_{shape[0]}x{shape[1]}'
     try:
         os.makedirs(model_path)
@@ -97,7 +100,7 @@ def setup_model(shape: tuple[int], e_nbr: int, U: float, hops: list[float],
         print(f'Storing model inside dir: {model_path}/')
 
     # Module related paths
-    file = f'model_{shape[0]}x{shape[1]}_n{e_nbr}'
+    file = f'model_{shape[0]}x{shape[1]}_n{e_nbr}_U{U_str}'
     module_format = '.'.join(model_path.split('/')[1:])
 
     if overwrite:
@@ -111,8 +114,7 @@ def setup_model(shape: tuple[int], e_nbr: int, U: float, hops: list[float],
         else:
             super_vecs = [[shape[1], 0, 0], [0, shape[0], 0]]
 
-        lattice_model(name=f"2D_{elem_nb}_sites_{e_nbr}_fermions",
-                      superlattice=super_vecs)
+        lattice_model(name=file, superlattice=super_vecs)
 
         # Interaction operator U
         interaction_operator(name="U")
@@ -154,7 +156,7 @@ def setup_model(shape: tuple[int], e_nbr: int, U: float, hops: list[float],
     return density, model_path
 
 
-def run_model(model_path: str, densities: tuple[int], eta: float,
+def run_model(model_path: str, densities: tuple[int], U: float, eta: float,
               overwrite=False) -> None:
     """Calls and computed model's quantities such as the density of states
     and the spectral weight in the Brillouin zone.
@@ -175,8 +177,10 @@ def run_model(model_path: str, densities: tuple[int], eta: float,
     density = densities[0] / densities[1]
 
     # Initializing data files path
-    dos_file = f'{model_path}/dos_n{densities[0]}.tsv'
-    spectrum_file = f'{model_path}/spectrum_n{densities[0]}'
+    U_f_to_str = str(U).split('.')
+    U_str = "".join(U_f_to_str if U_f_to_str[-1] != '0' else U_f_to_str[:-1])
+    dos_file = f'{model_path}/dos/dos_n{densities[0]}_U{U_str}.tsv'
+    spectrum_file = f'{model_path}/spectrums/spectrum_n{densities[0]}_U{U_str}'
 
     if overwrite or not os.path.isfile(dos_file):
         # Finding chemical potential using DoS (density of states)
@@ -199,24 +203,29 @@ def run_model(model_path: str, densities: tuple[int], eta: float,
 
 
 def plot_spectrum(shape: tuple[int], electrons: int, hops: list[float],
-                  U: float, eta: float, peters: str) -> None:
+                  U: float, eta: float, peters: str, save=False) -> None:
     """Docs
     """
     # Init matplotlib figure
+    U_f_to_str = str(U).split('.')
+    U_str = "".join(U_f_to_str if U_f_to_str[-1] != '0' else U_f_to_str[:-1])
     fig, axes = plt.subplots(ncols=2, tight_layout=True, figsize=(9, 5))
 
     # Momentum space grids
     momentums = np.linspace(-np.pi, np.pi, 200)
     k_x, k_y = np.meshgrid(momentums, momentums)
 
-    # Get spectral functions arrays
+    # Get spectral functions paths
     peter_array = read_fermi_arc()[peters]
-    file = f'model_{shape[0]}x{shape[1]}'
-    path_to_file = f'./nqft/Data/{file}/spectrum_n{electrons}.npy'
+    model = f'model_{shape[0]}x{shape[1]}'
+    file = f'spectrums/spectrum_n{electrons}_U{U_str}.npy'
+
+    # Load array
+    path_to_file = f'./nqft/Data/{model}/{file}'
     spectral = np.load(path_to_file)
 
     # Fig title
-    title = "{}/{} fill, U={}, t=[{}, {}, {}], $\eta$={}".format(
+    title = "{}/{} fill, $U=${}, $t=$[{}, {}, {}], $\eta=${}".format(
         electrons,
         shape[0]*shape[1],
         U,
@@ -235,7 +244,9 @@ def plot_spectrum(shape: tuple[int], electrons: int, hops: list[float],
     fig.colorbar(low_interaction)
 
     # Fig title
-    title_peter = f"{peters[1:]}/36 fill, U=8.0, t=[1, -0.3, 0.2], $\eta=0.1$"
+    title_peter = "{}/36 fill, $U=$8.0, $t=$[1, -0.3, 0.2], $\eta=$0.1".format(
+        peters[1:]
+    )
 
     axes[1].set_title(title_peter)
 
@@ -267,40 +278,52 @@ def plot_spectrum(shape: tuple[int], electrons: int, hops: list[float],
         axes[idx].set_yticks(ticks=[min, 0, max], labels=axes_labels)
 
     # Show figure's plot
-    dim = f"{shape[0]}x{shape[1]}"
-    plt.savefig(f"./nqft/Data/model_{dim}/figs/{dim}_{electrons}n_{U}_U.png")
-    plt.show()
+    if save:
+        dim = f"{shape[0]}x{shape[1]}"
+        plt.savefig(
+            f"./nqft/Data/model_{dim}/figs/{dim}_{electrons}n_U{U_str}.pdf")
+
+    # plt.show()
 
     return
 
 
 if __name__ == "__main__":
-    eta, model_shape, electrons = 0.1, (3, 4), 12
-    U, hoppings = 1.0, [1.0, -0.3, 0.2]
+    # Model params
+    eta, hoppings = 0.1, [1.0, -0.3, 0.2]
+    shape_x, shape_y, e_number, interaction, shift = sys.argv[1:]
+    shape = (int(shape_x), int(shape_y))
+    e_number = int(e_number)
+    interaction = float(interaction)
+    shift = bool(int(shift))
+
+    print(shape, e_number, interaction, shift)
 
     # Build model frame
     density, model_path = setup_model(
-        shape=model_shape,
-        e_nbr=electrons,
-        U=U,
+        shape=shape,
+        e_nbr=e_number,
+        U=interaction,
         hops=hoppings,
-        shift=True,
+        shift=shift,
         overwrite=True
     )
 
     # Actual computing
     run_model(
         model_path=model_path,
-        densities=(electrons, model_shape[0] * model_shape[1]),
+        densities=(e_number, shape[0] * shape[1]),
+        U=interaction,
         eta=eta,
         overwrite=True
     )
 
     # Compare low interaction to Peter's
     plot_spectrum(
-        shape=model_shape,
-        electrons=electrons,
+        shape=shape,
+        electrons=e_number,
         hops=hoppings,
-        U=U,
+        U=interaction,
         eta=eta,
-        peters='N32')
+        peters='N32',
+        save=True)
