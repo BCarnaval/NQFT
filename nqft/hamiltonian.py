@@ -4,6 +4,7 @@ networks.
 """
 
 import numpy as np
+from rich import print
 from rich.progress import track
 from qutip import Qobj, basis, create, destroy, num, tensor, identity
 
@@ -270,4 +271,3 @@ if __name__ == "__main__":
     N = Network(sites_nb=2)
     H = N.get_hamiltonian(model="Hubbard", U=1, t=1)
     print(H)
-

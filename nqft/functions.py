@@ -4,6 +4,8 @@ other Fock space operations.
 """
 
 import numpy as np
+from glob import glob
+from rich import print
 from qutip import Qobj
 
 
@@ -49,7 +51,7 @@ def delta(j: int, k: int) -> float:
 
 
 def read_fermi_arc(path="./nqft/Data/fermi_arc_data/") -> dict:
-    """Read Peter's data on spectral weight at Fermi
+    """Reads Peter's data on spectral weight at Fermi
     level for a given number of sites.
 
     Parameters
@@ -68,13 +70,48 @@ def read_fermi_arc(path="./nqft/Data/fermi_arc_data/") -> dict:
         f"{path}Akw_N30.npy",
         f"{path}Akw_N32.npy",
         f"{path}Akw_N36.npy",
-        f"{path}Akw_coords.npy"
     ]
 
-    extensions = ["N24", "N28", "N30", "N32", "N36", "coords"]
+    extensions = ["N24", "N28", "N30", "N32", "N36"]
     arcs = {ext: np.load(file) for ext, file in zip(extensions, files)}
 
     return arcs
+
+
+def read_locals(shape: tuple[int], interaction: float):
+    """Reads local model's spectral functions for given shape
+    and electronic density.
+
+    Parameters
+    ----------
+    shape: tuple, size=2, default=None
+        Shape of the clusters.
+    filling: int, default=None
+        Number of electrons in each cluster.
+
+    Returns
+    -------
+
+
+    Examples
+    --------
+    """
+    U_f_to_str = str(interaction).split('.')
+    U_str = "".join(U_f_to_str if U_f_to_str[-1] != '0' else U_f_to_str[:-1])
+
+    path = f"./nqft/Data/model_{shape[0]}x{shape[1]}/spectrums"
+    files = glob(f"{path}/spectrum_n*_U{U_str}.npy")
+
+    if not files:
+        print(f"No model inside: {path}")
+        exit(0)
+    else:
+        pass
+
+    density = [n.split("_n")[-1].split("_")[0] for n in files]
+    spectrums = {n: np.load(file) for n, file in zip(density, files)}
+
+    return spectrums
 
 
 def flatten_fermi_arc(save_path="./nqft/Data/fermi_arc_data_1D/",

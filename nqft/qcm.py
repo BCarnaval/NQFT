@@ -3,7 +3,6 @@ experimentation.
 """
 
 import os
-import sys
 import numpy as np
 from rich import print
 import importlib as iplib
@@ -21,7 +20,7 @@ from pyqcm import (
 from pyqcm.spectral import DoS, mdc
 from pyqcm import new_model_instance, set_parameters
 
-from nqft.functions import read_fermi_arc
+from nqft.functions import read_fermi_arc, read_locals
 
 
 def build_matrix(shape: tuple) -> list:
@@ -204,7 +203,29 @@ def run_model(model_path: str, densities: tuple[int], U: float, eta: float,
 
 def plot_spectrum(shape: tuple[int], electrons: int, hops: list[float],
                   U: float, eta: float, peters: str, save=False) -> None:
-    """Docs
+    """Opens spectrums from (2x2, 3x4) models and Peters spectrums array
+    to compare the plot for given parameters.
+
+    Parameters
+    ----------
+    shape: tuple, size=2, default=None
+        Shape of clusters of the lattice model.
+    electrons: int, default=None
+        Number of electrons in each cluster.
+    hops: list, size=3, default=None
+        Hopping amplitudes.
+    U: float, default=None
+        Interaction operator amplitude.
+    eta: float, default=None
+        Lorentzian broadening.
+    peters: str, default=None
+        Determines which of Peter's array to compare.
+    save: bool, default=False
+        Saves of not the output plot.
+
+    Returns
+    -------
+    None
     """
     # Init matplotlib figure
     U_f_to_str = str(U).split('.')
@@ -315,14 +336,15 @@ if __name__ == "__main__":
     #     overwrite=True
     # )
 
-    # Compare low interaction to Peter's
-    for i in [0.5, 1.0, 2.0, 8.0]:
-        plot_spectrum(
-            shape=shape,
-            electrons=e_number,
-            hops=hoppings,
-            U=i,
-            eta=eta,
-            peters='N32',
-            save=True
-        )
+    # # Compare low interaction to Peter's
+    # for i in [0.5, 1.0, 2.0, 8.0]:
+    #     plot_spectrum(
+    #         shape=shape,
+    #         electrons=e_number,
+    #         hops=hoppings,
+    #         U=i,
+    #         eta=eta,
+    #         peters='N32',
+    #         save=True
+    #     )
+    read_locals(shape=(4, 4), interaction=0.5)

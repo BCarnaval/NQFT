@@ -12,7 +12,7 @@ from scipy.constants import e, pi
 from dataclasses import dataclass, field
 from numpy import arange, meshgrid, sin, cos, exp
 
-from nqft.functions import read_fermi_arc, find_nearest
+from nqft.functions import read_fermi_arc, find_nearest, read_locals
 
 
 def timeit(func):
@@ -182,13 +182,13 @@ class Model:
         # Matplotlib instances (figure and subplots)
         self.fig, self.axes = plt.subplots(ncols=2, tight_layout=True)
         self.A_Peter = read_fermi_arc()
+        self.A_local = read_locals(shape=(3, 4), interaction=0.5)
 
         # Spectral functions (Non-interacting model + Peter's)
         if self.use_peter:
-            dict = read_fermi_arc()
-            dict.pop("coords")
+            dict = read_locals(shape=(3, 4), interaction=0.5)
             self.A = np.array([array for array in dict.values()])
-            self.mus = np.array([-1.25, -0.8, -0.5, -0.1, 0.3])
+            self.mus = np.array([-1.25, -0.8, -0.5])
 
             # Phase space grid(s)
             ks = arange(-pi, pi, 2*pi/200)
@@ -225,7 +225,7 @@ class Model:
 
         return
 
-    def plot_spectral_weight(self, mu: float, electron_nb=None) -> plt.figure:
+    def plot_spectral_weight(self, mu: float, type: str, key=None) -> None:
         """Ouputs the spectral weight as a 2D numpy array.
 
         Returns
@@ -242,40 +242,40 @@ class Model:
         self.axes[0].set_title(title)
 
         # Plot spectral weight
-        spectral = self.axes[0].pcolormesh(
+        spectral = self.axes[0].contourf(
             self.k_x,
             self.k_y,
             spectral_mu,
-            cmap=cm.Blues,
-            label="$\\mu = {:.2f}$".format(self.mus[idx]),
+            cmap=cm.Purples
         )
         self.fig.colorbar(spectral)
 
+        if type == "local":
+            imported_A = self.A_local[key]
+            imported_title = "Local model 3x4"
+
+        elif type == "peter":
+            imported_A = self.A_Peter[key]
+            imported_title = "Peter's model: {}".format(key)
+
         # Condition to plot Peter's data over colormesh (with some alpha)
-        if electron_nb:
-            # Fig title
-            title_peter = "Peter's model: {}".format(electron_nb)
-            self.axes[1].set_title(title_peter)
+        self.axes[1].set_title(imported_title)
 
-            # Phase space array
-            k_arrays = pi * self.A_Peter["coords"]
-            kx_g, ky_g = meshgrid(k_arrays, k_arrays)
-
-            # Plot one of Peter's spectral weight
-            self.axes[1].pcolormesh(
-                self.k_x,
-                self.k_y,
-                spectral_mu,
-                cmap=cm.Blues
-            )
-            spectral_peter = self.axes[1].pcolormesh(
-                kx_g,
-                ky_g,
-                self.A_Peter[electron_nb],
-                cmap=cm.Oranges,
-                alpha=0.6
-            )
-            self.fig.colorbar(spectral_peter)
+        # Plot one of Peter's spectral weight
+        spectral_peter = self.axes[1].contourf(
+            self.k_x,
+            self.k_y,
+            imported_A,
+            cmap=cm.Greens
+        )
+        self.axes[1].contourf(
+            self.k_x,
+            self.k_y,
+            spectral_mu,
+            cmap=cm.Purples,
+            alpha=0.6
+        )
+        self.fig.colorbar(spectral_peter)
 
         # Graph format & style
         min, max = self.k_x[0, 0], self.k_x[-1, -1]
@@ -374,37 +374,32 @@ if __name__ == "__main__":
         hopping_amplitudes=(1.0, -0.3, 0.2),
         omega=0.0,
         eta=0.1,
-        mu_lims=(-4, 4, 400),
+        mu_lims=(-4, 4, 200),
         v=1.0,
         beta=100,
-        resolution=400,
-        use_peter=False
+        resolution=200,
+        use_peter=True
     )
-
-    N.plot_spectral_weight(mu=-0.4, electron_nb="N32")
 
     # Spectral weight
     # peter_model, peter_density = "N36", 0.889
     # mu_idx = find_nearest(N.get_density(), peter_density)
     # mu = N.mus[mu_idx]
 
-    # p_densities = 1 - np.array([0.667, 0.778, 0.833, 0.889])
+    p_densities = 1 - np.array([0.833, 0.667, 1.0])
 
     # Plot Hall number
-    # fig, ax = plt.subplots()
-    #
-    # density = N.get_density()
-    # hall_nb = -2 * N.get_hall_nb()  # Verifier la provenance du facteur -2
+    fig, ax = plt.subplots()
+    hall_nb = -2 * N.get_hall_nb()
 
     # for x, n, n_h in zip(N.mus, p_densities, hall_nb):
     # ax.text(x, n + 0.25, "({:.2f}, {:.2f})".format(x, n))
     # ax.text(n, n_h + 0.25, "({:.2f}, {:.2f})".format(n, n_h))
 
     # ax.plot(N.mus, p_densities, ".-", label="Density $n$")
-    # ax.plot(1 - density, hall_nb, ".-", label="$n_H(p)$")
-    # ax.set_xlabel("Hole doping $p$")
-    # ax.set_ylabel("Hall number $n_H$")
-    # ax.set_ylim([-2, 2])
+    ax.plot(p_densities, hall_nb, ".-", label="$n_H(p)$")
+    ax.set_xlabel("Hole doping $p$")
+    ax.set_ylabel("Hall number $n_H$")
 
-    # plt.legend()
-    # plt.show()
+    plt.legend()
+    plt.show()
