@@ -306,16 +306,16 @@ def plot_spectrum(shape: tuple[int], electrons: int, hops: list[float],
         plt.savefig(
             f"./nqft/Data/model_{dim}/figs/{dim}_{electrons}n_U{U_str}.pdf")
 
-    # plt.show()
+    plt.show()
 
     return
 
 
 if __name__ == "__main__":
     # Model params
-    shift = False
+    shift = True
     eta, hoppings = 0.1, [1.0, -0.3, 0.2]
-    shape, e_number, interaction = (2, 2), 4, 1.0
+    shape, e_number, interaction = (3, 4), 10, 8.0
 
     # # Build model frame
     # density, model_path = setup_model(
@@ -336,15 +336,13 @@ if __name__ == "__main__":
     #     overwrite=True
     # )
 
-    # # Compare low interaction to Peter's
-    # for i in [0.5, 1.0, 2.0, 8.0]:
-    #     plot_spectrum(
-    #         shape=shape,
-    #         electrons=e_number,
-    #         hops=hoppings,
-    #         U=i,
-    #         eta=eta,
-    #         peters='N32',
-    #         save=True
-    #     )
-    read_locals(shape=(4, 4), interaction=0.5)
+    # Compare low interaction to Peter's
+    plot_spectrum(
+        shape=shape,
+        electrons=e_number,
+        hops=hoppings,
+        U=interaction,
+        eta=eta,
+        peters='N30',
+        save=True
+    )
