@@ -7,7 +7,9 @@ import numpy as np
 from rich import print
 import importlib as iplib
 from matplotlib import cm
+from numpy import sin, cos
 import matplotlib.pyplot as plt
+from scipy.constants import e, pi
 
 from pyqcm import (
     new_cluster_model,
@@ -20,7 +22,7 @@ from pyqcm import (
 from pyqcm.spectral import DoS, mdc
 from pyqcm import new_model_instance, set_parameters
 
-from nqft.functions import read_fermi_arc, read_locals
+from nqft.functions import read_fermi_arc
 
 
 def build_matrix(shape: tuple) -> list:
@@ -149,14 +151,14 @@ def setup_model(shape: tuple[int], e_nbr: int, U: float, hops: list[float],
         try:
             # Import module if not overwriting model
             iplib.import_module(name=f'{module_format}.{file}')
-        except ModuleNotFoundError as e:
-            print(e)
+        except ModuleNotFoundError as error:
+            print(error)
 
     return density, model_path
 
 
-def run_model(model_path: str, densities: tuple[int], U: float, eta: float,
-              overwrite=False) -> None:
+def run_model(model_path: str, densities: tuple[int], U: float,
+              eta: float, hops: list[float], res=200, overwrite=False) -> None:
     """Calls and computed model's quantities such as the density of states
     and the spectral weight in the Brillouin zone.
 
@@ -168,6 +170,10 @@ def run_model(model_path: str, densities: tuple[int], U: float, eta: float,
         Fermionic density of the system (nbr of fermions / nbr of sites).
     eta: float, default=None
         Lorentzian broadening of the system.
+    res: int, default=200
+        Resolution of momentum space (matrix shape=(res, res))
+    overwrite: bool, default=False
+        Determines if program computes DoS again or loads file.
 
     Returns
     -------
@@ -189,16 +195,46 @@ def run_model(model_path: str, densities: tuple[int], U: float, eta: float,
         freqs, cumul_density = data[:, 0], data[:, 3]
 
     # Interpolate to find wanted frequency associated with density
-    # w_re = np.interp(1/2 * density, np.real(cumul_density), np.real(freqs))
-    # w_im = np.interp(1/2 * density, np.real(cumul_density), np.imag(freqs))
-
     w_re = np.interp(1/2 * density, np.real(cumul_density), np.real(freqs))
 
     # Computing spectral weight at given frequency
-    # mdc(freq=w_re + w_im*1j, eta=0.12, sym="RXY", data_file=spectrum_file)
-    mdc(freq=w_re, eta=eta, sym="RXY", data_file=spectrum_file)
+    mdc(nk=res, freq=w_re, eta=eta, sym="RXY", data_file=spectrum_file)
 
-    return
+    # Energy derivatives
+    t, tp, tpp = hops
+    momentum = np.linspace(-pi, pi, res)
+    k_x, k_y = np.meshgrid(momentum, momentum)
+
+    dEs = {
+        'dE_dx': None,
+        'ddE_dxx': None,
+        'dE_dy': None,
+        'ddE_dyy': None,
+        'ddE_dxdy': None
+    }
+
+    # Ex derivatives
+    dEs['dE_dx'] = 2 * t * sin(k_x) + \
+        4 * tp * sin(k_x) * cos(k_y) + \
+        4 * tpp * sin(2 * k_x)
+
+    dEs['ddE_dxx'] = 2 * t * cos(k_x) + \
+        4 * tp * cos(k_x) * cos(k_y) + \
+        8 * tpp * cos(2 * k_x)
+
+    # Ey derivatives
+    dEs['dE_dy'] = 2 * t * sin(k_y) + \
+        4 * tp * cos(k_x) * cos(k_y) + \
+        4 * tpp * sin(2 * k_y)
+
+    dEs['ddE_dyy'] = 2 * t * cos(k_y) + \
+        4 * tp * cos(k_x) * cos(k_y) + \
+        8 * tpp * cos(2 * k_y)
+
+    # Mixed derivative
+    dEs['ddE_dxdy'] = -4 * tp * sin(k_x) * sin(k_y)
+
+    return dEs
 
 
 def plot_spectrum(shape: tuple[int], electrons: int, hops: list[float],
@@ -311,30 +347,61 @@ def plot_spectrum(shape: tuple[int], electrons: int, hops: list[float],
     return
 
 
+def hall_coefficient(shape: tuple, U: float, electrons: int,
+                     dE: dict) -> float:
+    """Docs
+    """
+    U_f_to_str = str(U).split('.')
+    U_str = "".join(U_f_to_str if U_f_to_str[-1] != '0' else U_f_to_str[:-1])
+
+    model = f'model_{shape[0]}x{shape[1]}/spectrums'
+    path_to_spectrum = f'./nqft/Data/{model}/{model}_n{electrons}_U{U_str}.npy'
+
+    # Load spectrum
+    A = np.load(path_to_spectrum)
+
+    # Computing conductivities (ii)
+    sigma_xx = (e**2 * pi * dE['dE_dx']**2 * A**2).sum()
+    sigma_yy = (e**2 * pi * dE['dE_dy']**2 * A**2).sum()
+
+    # Computing conductivity (ij)
+    coeff = e**3 * pi**2 / 3
+    xy_1 = dE['dE_dx'] * dE['dE_dy'] * dE['ddE_dxdy']
+    xy_2 = dE['dE_dx']**2 * dE['ddE_dyy'] + dE['dE_dy'] * dE['ddE_dxx']
+    sigma_xy = (coeff * (xy_1 + xy_2) * A**3).sum()
+
+    # Computing Hall coefficient
+    n_h = sigma_xx * sigma_yy / (sigma_xy * e)
+
+    return n_h
+
+
 if __name__ == "__main__":
     # Model params
-    shift = True
+    shift, res = True, 400
     eta, hoppings = 0.1, [1.0, -0.3, 0.2]
-    shape, e_number, interaction = (3, 4), 10, 8.0
+    shape, e_number, interaction = (3, 4), 10, 1.0
 
-    # # Build model frame
-    # density, model_path = setup_model(
-    #     shape=shape,
-    #     e_nbr=e_number,
-    #     U=interaction,
-    #     hops=hoppings,
-    #     shift=shift,
-    #     overwrite=True
-    # )
-    #
-    # # Actual computing
-    # run_model(
-    #     model_path=model_path,
-    #     densities=(e_number, shape[0] * shape[1]),
-    #     U=interaction,
-    #     eta=eta,
-    #     overwrite=True
-    # )
+    # Build model frame
+    density, model_path = setup_model(
+        shape=shape,
+        e_nbr=e_number,
+        U=interaction,
+        hops=hoppings,
+        shift=shift,
+        overwrite=False
+    )
+
+    # Actual computing
+    dEs = run_model(
+        model_path=model_path,
+        densities=(e_number, shape[0] * shape[1]),
+        U=interaction,
+        eta=eta,
+        hops=hoppings,
+        res=res,
+        overwrite=True
+    )
 
     # Compare low interaction to Peter's
     plot_spectrum(
@@ -343,6 +410,6 @@ if __name__ == "__main__":
         hops=hoppings,
         U=interaction,
         eta=eta,
-        peters='N30',
-        save=True
+        peters='N32',
+        save=False
     )

@@ -182,13 +182,13 @@ class Model:
         # Matplotlib instances (figure and subplots)
         self.fig, self.axes = plt.subplots(ncols=2, tight_layout=True)
         self.A_Peter = read_fermi_arc()
-        self.A_local = read_locals(shape=(3, 4), interaction=0.5)
+        self.A_local = read_locals(shape=(3, 4), interaction=8.0)
 
         # Spectral functions (Non-interacting model + Peter's)
         if self.use_peter:
-            dict = read_locals(shape=(3, 4), interaction=0.5)
+            dict = read_locals(shape=(3, 4), interaction=8.0)
             self.A = np.array([array for array in dict.values()])
-            self.mus = np.array([-1.25, -0.8, -0.5])
+            self.mus = np.array([-1.25])
 
             # Phase space grid(s)
             ks = arange(-pi, pi, 2*pi/200)
@@ -373,7 +373,7 @@ if __name__ == "__main__":
     N = Model(
         hopping_amplitudes=(1.0, -0.3, 0.2),
         omega=0.0,
-        eta=0.1,
+        eta=0.05,
         mu_lims=(-4, 4, 200),
         v=1.0,
         beta=100,
@@ -381,12 +381,13 @@ if __name__ == "__main__":
         use_peter=True
     )
 
+    # N.plot_spectral_weight(mu=0.0, type='local', key='10')
     # Spectral weight
     # peter_model, peter_density = "N36", 0.889
     # mu_idx = find_nearest(N.get_density(), peter_density)
     # mu = N.mus[mu_idx]
 
-    p_densities = 1 - np.array([0.833, 0.667, 1.0])
+    p_densities = 1 - np.array([0.667, 1.0, 0.833])
 
     # Plot Hall number
     fig, ax = plt.subplots()
