@@ -8,8 +8,8 @@ from rich import print
 import importlib as iplib
 from matplotlib import cm
 from numpy import sin, cos
+from scipy.constants import pi
 import matplotlib.pyplot as plt
-from scipy.constants import e, pi
 
 from pyqcm import (
     new_cluster_model,
@@ -189,17 +189,44 @@ def run_model(model_path: str, densities: tuple[int], U: float,
 
     if overwrite or not os.path.isfile(dos_file):
         # Finding chemical potential using DoS (density of states)
-        freqs, cumul_density = DoS(w=30.0, eta=eta, data_file=dos_file)
+        freqs, cumul_density = DoS(w=40.0, eta=eta, data_file=dos_file)
     else:
         data = np.loadtxt(dos_file, skiprows=1, dtype=np.complex64)
         freqs, cumul_density = data[:, 0], data[:, 3]
 
-    # Interpolate to find wanted frequency associated with density
-    w_re = np.interp(1/2 * density, np.real(cumul_density), np.real(freqs))
+    # # Interpolate to find wanted frequency associated with density
+    w_re = 0.0
+    # w_re = np.interp(1 / 2 * density, np.real(cumul_density), np.real(freqs))
 
     # Computing spectral weight at given frequency
-    mdc(nk=res, freq=w_re, eta=eta, sym="RXY", data_file=spectrum_file)
+    A = mdc(
+        freq=w_re,
+        nk=res,
+        eta=eta,
+        sym="RXY",
+        data_file=spectrum_file,
+        show=True
+    )
 
+    return A
+
+
+def dE(hops: tuple, res=200) -> tuple:
+    """Outputs model's energies and it's derivatives.
+
+    Parameters
+    ----------
+    hops: tuple, default=None
+        Hopping amplitudes coefficients.
+
+    res: int, default=200
+        Resolution of momentum space (matrix shape=(res, res))
+
+    Returns
+    -------
+    dEs: dict, size=5
+        Energy derivatives in a dict.
+    """
     # Energy derivatives
     t, tp, tpp = hops
     momentum = np.linspace(-pi, pi, res)
@@ -238,7 +265,8 @@ def run_model(model_path: str, densities: tuple[int], U: float,
 
 
 def plot_spectrum(shape: tuple[int], electrons: int, hops: list[float],
-                  U: float, eta: float, peters: str, save=False) -> None:
+                  U: float, eta: float, peters: str, res=200,
+                  save=False) -> None:
     """Opens spectrums from (2x2, 3x4) models and Peters spectrums array
     to compare the plot for given parameters.
 
@@ -256,6 +284,8 @@ def plot_spectrum(shape: tuple[int], electrons: int, hops: list[float],
         Lorentzian broadening.
     peters: str, default=None
         Determines which of Peter's array to compare.
+    res: int, default=200
+        Momentum space grids resolution.
     save: bool, default=False
         Saves of not the output plot.
 
@@ -266,11 +296,17 @@ def plot_spectrum(shape: tuple[int], electrons: int, hops: list[float],
     # Init matplotlib figure
     U_f_to_str = str(U).split('.')
     U_str = "".join(U_f_to_str if U_f_to_str[-1] != '0' else U_f_to_str[:-1])
-    fig, axes = plt.subplots(ncols=2, tight_layout=True, figsize=(9, 5))
+    fig, axes = plt.subplots(ncols=2, tight_layout=True, figsize=(10, 4))
+    axes[0].set(adjustable='box', aspect='equal')
+    axes[1].set(adjustable='box', aspect='equal')
 
     # Momentum space grids
-    momentums = np.linspace(-np.pi, np.pi, 200)
+    momentums = np.linspace(-np.pi, np.pi, res)
     k_x, k_y = np.meshgrid(momentums, momentums)
+
+    # Momentum space grids (Peter data (200, 200))
+    momentums = np.linspace(-np.pi, np.pi, 200)
+    k_x_p, k_y_p = np.meshgrid(momentums, momentums)
 
     # Get spectral functions paths
     peter_array = read_fermi_arc()[peters]
@@ -296,7 +332,8 @@ def plot_spectrum(shape: tuple[int], electrons: int, hops: list[float],
         k_x,
         k_y,
         spectral,
-        cmap=cm.Purples
+        cmap=cm.Purples,
+        extend='max'
     )
     fig.colorbar(low_interaction)
 
@@ -309,11 +346,12 @@ def plot_spectrum(shape: tuple[int], electrons: int, hops: list[float],
 
     # Plot one of Peter's spectral weight
     peter_spectral = axes[1].contourf(
-        k_x,
-        k_y,
+        k_x_p,
+        k_y_p,
         peter_array,
         cmap=cm.Greens,
-        alpha=1.0
+        alpha=1.0,
+        extend='max'
     )
 
     axes[1].contourf(
@@ -347,40 +385,31 @@ def plot_spectrum(shape: tuple[int], electrons: int, hops: list[float],
     return
 
 
-def hall_coefficient(shape: tuple, U: float, electrons: int,
-                     dE: dict) -> float:
+def hall_coefficient(A: np.ndarray, dE: dict, normalize: int) -> float:
     """Docs
     """
-    U_f_to_str = str(U).split('.')
-    U_str = "".join(U_f_to_str if U_f_to_str[-1] != '0' else U_f_to_str[:-1])
-
-    model = f'model_{shape[0]}x{shape[1]}/spectrums'
-    path_to_spectrum = f'./nqft/Data/{model}/{model}_n{electrons}_U{U_str}.npy'
-
-    # Load spectrum
-    A = np.load(path_to_spectrum)
-
     # Computing conductivities (ii)
-    sigma_xx = (e**2 * pi * dE['dE_dx']**2 * A**2).sum()
-    sigma_yy = (e**2 * pi * dE['dE_dy']**2 * A**2).sum()
+    sigma_xx = (dE['dE_dx']**2 * A**2).sum()
+    sigma_yy = (dE['dE_dy']**2 * A**2).sum()
 
     # Computing conductivity (ij)
-    coeff = e**3 * pi**2 / 3
-    xy_1 = dE['dE_dx'] * dE['dE_dy'] * dE['ddE_dxdy']
-    xy_2 = dE['dE_dx']**2 * dE['ddE_dyy'] + dE['dE_dy'] * dE['ddE_dxx']
-    sigma_xy = (coeff * (xy_1 + xy_2) * A**3).sum()
+    coeff = 1 / 3
+    xy_1 = -2 * dE['dE_dx'] * dE['dE_dy'] * dE['ddE_dxdy']
+    xy_2 = dE['dE_dx']**2 * dE['ddE_dyy'] + dE['dE_dy']**2 * dE['ddE_dxx']
+    sigma_xy = coeff * ((xy_1 + xy_2) * A**3).sum()
 
     # Computing Hall coefficient
-    n_h = sigma_xx * sigma_yy / (sigma_xy * e)
+    n_h = normalize * sigma_xx * sigma_yy / sigma_xy
 
     return n_h
 
 
 if __name__ == "__main__":
     # Model params
-    shift, res = True, 400
-    eta, hoppings = 0.1, [1.0, -0.3, 0.2]
-    shape, e_number, interaction = (3, 4), 10, 1.0
+    shift, res = True, 200
+    eta, hoppings, norm = 0.05, [-1.0, 0.3, -0.2], 1 / res**2
+    shape, e_number, interaction = (3, 4), 12, 0.1
+    dEs = dE(hops=hoppings, res=res)
 
     # Build model frame
     density, model_path = setup_model(
@@ -389,11 +418,11 @@ if __name__ == "__main__":
         U=interaction,
         hops=hoppings,
         shift=shift,
-        overwrite=False
+        overwrite=True
     )
 
     # Actual computing
-    dEs = run_model(
+    A = run_model(
         model_path=model_path,
         densities=(e_number, shape[0] * shape[1]),
         U=interaction,
@@ -410,6 +439,15 @@ if __name__ == "__main__":
         hops=hoppings,
         U=interaction,
         eta=eta,
-        peters='N32',
+        peters='N36',
+        res=res,
         save=False
     )
+
+    # n_h = hall_coefficient(
+    #     A=A,
+    #     dE=dEs,
+    #     normalize=norm
+    # )
+    #
+    # print(n_h)

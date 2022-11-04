@@ -7,8 +7,8 @@ import numpy as np
 from rich import print
 from matplotlib import cm
 from functools import wraps
+from scipy.constants import pi
 import matplotlib.pyplot as plt
-from scipy.constants import e, pi
 from dataclasses import dataclass, field
 from numpy import arange, meshgrid, sin, cos, exp
 
@@ -307,15 +307,13 @@ class Model:
         -------
         conductivity: float
         """
-        coeff = e**2 * pi / self.v
-
         if variable == "x":
             dE = self.dEs['dE_dx']
 
         elif variable == "y":
             dE = self.dEs['dE_dy']
 
-        sigma_ii = coeff * dE**2 * self.A**2
+        sigma_ii = dE**2 * self.A**2
         conductivity = np.array([sigma.sum() for sigma in sigma_ii])
 
         return conductivity
@@ -329,7 +327,7 @@ class Model:
         -------
         conductivity: float
         """
-        coeff = e**3 * pi**2 / (3 * self.v)
+        coeff = 1 / 3
         c1 = -2 * self.dEs['dE_dx'] * self.dEs['dE_dy'] * self.dEs['ddE_dxdy']
         c2 = self.dEs['dE_dx']**2 * self.dEs['ddE_dyy']
         c3 = self.dEs['dE_dy']**2 * self.dEs['ddE_dxx']
@@ -364,7 +362,7 @@ class Model:
         """
         s_xy = self.sigma_ij()
         s_xx, s_yy = self.sigma_ii("x"), self.sigma_ii("y")
-        n_H = self.norm * self.v * s_xx * s_yy / (e * s_xy)
+        n_H = self.norm * s_xx * s_yy / s_xy
 
         return n_H
 
@@ -374,11 +372,11 @@ if __name__ == "__main__":
         hopping_amplitudes=(1.0, -0.3, 0.2),
         omega=0.0,
         eta=0.05,
-        mu_lims=(-4, 4, 200),
+        mu_lims=(-4, 4, 600),
         v=1.0,
         beta=100,
-        resolution=200,
-        use_peter=True
+        resolution=600,
+        use_peter=False
     )
 
     # N.plot_spectral_weight(mu=0.0, type='local', key='10')
@@ -387,11 +385,12 @@ if __name__ == "__main__":
     # mu_idx = find_nearest(N.get_density(), peter_density)
     # mu = N.mus[mu_idx]
 
-    p_densities = 1 - np.array([0.667, 1.0, 0.833])
+    # p_densities = 1 - np.array([0.667, 1.0, 0.833])
 
     # Plot Hall number
     fig, ax = plt.subplots()
     hall_nb = -2 * N.get_hall_nb()
+    p_densities = 1 - N.get_density()
 
     # for x, n, n_h in zip(N.mus, p_densities, hall_nb):
     # ax.text(x, n + 0.25, "({:.2f}, {:.2f})".format(x, n))
@@ -401,6 +400,7 @@ if __name__ == "__main__":
     ax.plot(p_densities, hall_nb, ".-", label="$n_H(p)$")
     ax.set_xlabel("Hole doping $p$")
     ax.set_ylabel("Hall number $n_H$")
+    ax.set_ylim([-2, 2])
 
     plt.legend()
     plt.show()
