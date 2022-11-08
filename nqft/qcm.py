@@ -4,7 +4,9 @@ experimentation.
 """
 
 import os
+import sys
 import numpy as np
+from qutip import plot_berry_curvature
 from rich import print
 import importlib as iplib
 from matplotlib import cm
@@ -23,7 +25,7 @@ from pyqcm import (
 from pyqcm.spectral import DoS, mdc
 from pyqcm import new_model_instance, set_parameters
 
-from nqft.functions import read_fermi_arc
+from nqft.functions import read_fermi_arc, plot_hall
 
 
 def build_matrix(shape: tuple) -> list:
@@ -82,7 +84,7 @@ class QcmModel:
         try:
             os.makedirs(self.model_path)
         except FileExistsError:
-            print(f'Storing model inside dir: {self.model_path}/')
+            print(f'Using dir: {self.model_path}/')
 
         # Density of states & spectrum file names
         self.dos_file = f'dos/dos_n{filling}_U{u_str}.tsv'
@@ -135,7 +137,7 @@ class QcmModel:
             # Instancing lattice model
             model = new_model_instance(record=True)
             model.print(filename=f'{self.model_path}/{self.file_name}.py')
-            print(f"Module '{self.file_name}' saved in: {self.model_path}\n")
+            print(f"Module '{self.file_name}' saved in: {self.model_path}")
 
         else:
             try:
@@ -188,7 +190,7 @@ class QcmModel:
             nk=self.res,
             eta=self.eta,
             sym='RXY',
-            data_file=f'{self.model_path}/{self.spectrum_file}',
+            # data_file=f'{self.model_path}/{self.spectrum_file}',
             show=show
         )
 
@@ -294,11 +296,11 @@ class QcmModel:
 
         return
 
-    def get_hall_coeff(self, spectral_weight: np.ndarray):
+    def get_hall_coeff(self, spectral_weight: np.ndarray, file=None):
         """Docs
         """
         # Computing model's energy derivatives
-        momentum = np.linspace(-pi, pi, self.res)
+        momentum = np.linspace(-pi, pi, spectral_weight.shape[0])
         k_x, k_y = np.meshgrid(momentum, momentum)
 
         dEs = {
@@ -344,24 +346,31 @@ class QcmModel:
         # Computing Hall coefficient
         n_h = self.norm * sigma_xx * sigma_yy / sigma_xy
 
+        if file:
+            with open(file, "a") as file:
+                file.write(f'{self.u},{n_h}\n')
+                file.close()
+        else:
+            pass
+
         return n_h
 
 
 if __name__ == "__main__":
+    u = float(sys.argv[1])
+
     lattice = QcmModel(
         shape=(3, 4),
         filling=12,
-        interaction=0.0,
+        interaction=u,
         hoppings=(-1.0, 0.3, -0.2),
         broadening=0.05,
         resolution=200,
-        tiling_shift=True,
+        tiling_shift=False,
         overwrite=True
     )
 
-    A = lattice.get_spectrum()
-    print(A)
+    A = lattice.get_spectrum(show=False)
 
     n_h = lattice.get_hall_coeff(spectral_weight=A)
-
     print(n_h)

@@ -1,7 +1,7 @@
 from pyqcm import *
 new_cluster_model('clus', 12, 0, generators=None, bath_irrep=False)
 add_cluster('clus', [0, 0, 0], [[0, 0, 0], [1, 0, 0], [2, 0, 0], [3, 0, 0], [0, 1, 0], [1, 1, 0], [2, 1, 0], [3, 1, 0], [0, 2, 0], [1, 2, 0], [2, 2, 0], [3, 2, 0]], ref = 0)
-lattice_model('model_3x4_n12_U0', [[4, 0, 0], [1, 3, 0]], None)
+lattice_model('model_3x4_n12_U0', [[4, 0, 0], [0, 3, 0]], None)
 interaction_operator('U', band1=1, band2=1)
 hopping_operator('t', [1, 0, 0], -1, band1=1, band2=1)
 hopping_operator('t', [0, 1, 0], -1, band1=1, band2=1)

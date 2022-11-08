@@ -7,6 +7,7 @@ import numpy as np
 from glob import glob
 from rich import print
 from qutip import Qobj
+import matplotlib.pyplot as plt
 
 
 def scalar(m: Qobj, n=None) -> float:
@@ -165,6 +166,17 @@ def find_nearest(array, value):
     array = np.asarray(array)
     idx = (np.abs(array - value)).argmin()
     return idx
+
+
+def plot_hall(file="./nqft/Data/hall.txt"):
+    """Plots hall coefficient as a function of interaction.
+    """
+    data = np.loadtxt(file, delimiter=",")
+    plt.plot(data[:, 0], data[:, 1], label="$n_H(U)$")
+    plt.legend()
+    plt.show()
+
+    return
 
 
 if __name__ == "__main__":
