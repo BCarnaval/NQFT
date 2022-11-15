@@ -79,7 +79,7 @@ def read_fermi_arc(path="./nqft/Data/fermi_arc_data/") -> dict:
     return arcs
 
 
-def read_locals(shape: tuple[int], interaction: float):
+def read_locals(shape: tuple[int], interaction: float) -> dict:
     """Reads local model's spectral functions for given shape
     and electronic density.
 
@@ -145,7 +145,7 @@ def flatten_fermi_arc(save_path="./nqft/Data/fermi_arc_data_1D/",
     return
 
 
-def find_nearest(array, value):
+def find_nearest(array, value) -> int:
     """Finds index in given array of the closest value
     of parameter 'value'.
 
@@ -167,8 +167,16 @@ def find_nearest(array, value):
     return idx
 
 
-def plot_hall(files=["./nqft/Data/hall.txt"], x='doping'):
+def plot_hall(files=["./nqft/Data/hall.txt"], x='doping') -> plt.Figure:
     """Plots hall coefficient as a function of interaction.
+
+    Parameters
+    ----------
+    files: list[str], size=N, default=["./nqft/Data/hall.txt"]
+        Text files to plot.
+
+    x: str, default='doping'
+        Type of x coordinate used to plot (setting up the legend label).
     """
     for file in files:
         if x == 'interaction':

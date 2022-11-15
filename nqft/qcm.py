@@ -135,16 +135,6 @@ class QcmModel:
                 """
             )
 
-            # Computing spectral weight
-            spectral = mdc(
-                freq=0.0,
-                nk=resolution,
-                eta=broadening,
-                sym='RXY',
-                # data_file=f'{self.model_path}/{self.spectrum_file}',
-                show=show_spectrum
-            )
-
             # Instancing lattice model
             model = new_model_instance(record=True)
             model.print(filename=f'{self.model_path}/{self.file_name}.py')
@@ -174,7 +164,17 @@ class QcmModel:
         self.eta = broadening
         self.res = resolution
 
-        # Associating spectral function
+        # Computing spectral weight
+        spectral = mdc(
+            freq=0.0,
+            nk=resolution,
+            eta=broadening,
+            sym='RXY',
+            # data_file=f'{self.model_path}/{self.spectrum_file}',
+            data_file=None,
+            show=show_spectrum
+        )
+
         self.spectrum = spectral / pi
 
         return
@@ -320,7 +320,7 @@ class QcmModel:
             axes[idx].set_xticks(ticks=[min, 0, max], labels=axes_labels)
             axes[idx].set_yticks(ticks=[min, 0, max], labels=axes_labels)
 
-        # Show figure's plot
+        # Saving figure's plot
         if save:
             plt.savefig(f"{self.model_path}/figs/{self.file_name}.pdf")
         else:
@@ -413,13 +413,13 @@ if __name__ == "__main__":
     hops = (1.0, -0.3, 0.2)
 
     lattice = QcmModel(
-        shape=(2, 2),
+        shape=(3, 4),
         filling=fill,
         interaction=u,
         hoppings=hops,
         broadening=0.05,
         resolution=1000,
-        tiling_shift=False,
+        tiling_shift=True,
         show_spectrum=False,
         overwrite=True
     )
