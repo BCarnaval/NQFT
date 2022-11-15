@@ -1,7 +1,7 @@
 from pyqcm import *
 new_cluster_model('clus', 12, 0, generators=None, bath_irrep=False)
 add_cluster('clus', [0, 0, 0], [[0, 0, 0], [1, 0, 0], [2, 0, 0], [3, 0, 0], [0, 1, 0], [1, 1, 0], [2, 1, 0], [3, 1, 0], [0, 2, 0], [1, 2, 0], [2, 2, 0], [3, 2, 0]], ref = 0)
-lattice_model('model_3x4_n12_U0', [[4, 0, 0], [1, 3, 0]], None)
+lattice_model('model_3x4_n0_U05', [[4, 0, 0], [1, 3, 0]], None)
 interaction_operator('U', band1=1, band2=1)
 hopping_operator('t', [1, 0, 0], -1, band1=1, band2=1)
 hopping_operator('t', [0, 1, 0], -1, band1=1, band2=1)
@@ -14,16 +14,16 @@ try:
     import model_extra
 except:
     pass
-set_target_sectors(['R0:N12:S0'])
+set_target_sectors(['R0:N0:S0'])
 set_parameters("""
 
-                U = 0.0
+                U = 0.5
                 t = 1.0
                 tp = -0.3
                 tpp = 0.2
                 mu = 0.000000001
                 """)
-set_parameter("U", 0.0)
+set_parameter("U", 0.5)
 set_parameter("mu", 1e-09)
 set_parameter("t", 1.0)
 set_parameter("tp", -0.3)
@@ -35,16 +35,17 @@ solution=[None]*1
 
 #--------------------- cluster no 1 -----------------
 solution[0] = """
+U	0.5
 mu	1e-09
 t	1
 tp	-0.3
 tpp	0.2
 
-GS_energy: -18.1628 GS_sector: uncorrelated
+GS_energy: 0 GS_sector: R0:N0:S0:1
 GF_format: bl
 mixing	0
 state
-R0	-18.1628	1
+R0:N0:S0	0	1
 w	12	12
 -2.6363301834896	-0.21472401243673	-0.30962975265518	-0.30962975265518	-0.21472401243673	-0.26594515691225	-0.38120755897862	-0.38120755897862	-0.26594515691225	-0.21472401243673	-0.30962975265518	-0.30962975265518	-0.21472401243673
 -1.7039919419221	0.33013646811128	0.16361478648922	-0.16361478648922	-0.33013646811128	0.42892088050987	0.21096707419127	-0.21096707419127	-0.42892088050987	0.33013646811128	0.16361478648922	-0.16361478648922	-0.33013646811128

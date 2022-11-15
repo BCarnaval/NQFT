@@ -7,8 +7,8 @@ import numpy as np
 from rich import print
 from matplotlib import cm
 from functools import wraps
-from scipy.constants import pi
 import matplotlib.pyplot as plt
+from scipy.constants import pi, e
 from dataclasses import dataclass, field
 from numpy import arange, meshgrid, sin, cos, exp
 
@@ -54,7 +54,7 @@ def dE(hop_amps: tuple, kx: np.ndarray, ky: np.ndarray, mu: np.array) -> tuple:
     # Energy
     t, t1, t2 = hop_amps
     a = -2 * t * (cos(kx) + cos(ky))
-    b = -4 * t1 * cos(kx) * cos(ky)
+    b = -2 * t1 * (cos(kx + ky) + cos(kx - ky))
     c = -2 * t2 * (cos(2 * kx) + cos(2 * ky))
 
     E = np.array([a + b + c - i for i in mu])
@@ -68,25 +68,25 @@ def dE(hop_amps: tuple, kx: np.ndarray, ky: np.ndarray, mu: np.array) -> tuple:
     }
 
     # Ex derivatives
-    dEs['dE_dx'] = 2 * t * sin(kx) + \
-        4 * t1 * sin(kx) * cos(ky) + \
-        4 * t2 * sin(2 * kx)
+    dEs['dE_dx'] = 2 * (t * sin(kx) +
+                        t1 * (sin(kx - ky) + sin(kx + ky)) +
+                        2 * t2 * sin(2 * kx))
 
-    dEs['ddE_dxx'] = 2 * t * cos(kx) + \
-        4 * t1 * cos(kx) * cos(ky) + \
-        8 * t2 * cos(2 * kx)
+    dEs['ddE_dxx'] = 2 * (t * cos(kx) +
+                          t1 * (cos(kx - ky) + cos(kx + ky)) +
+                          4 * t2 * cos(2 * kx))
 
     # Ey derivatives
-    dEs['dE_dy'] = 2 * t * sin(ky) + \
-        4 * t1 * cos(kx) * cos(ky) + \
-        4 * t2 * sin(2 * ky)
+    dEs['dE_dy'] = 2 * (t * sin(ky) +
+                        t1 * (sin(kx + ky) - sin(kx - ky)) +
+                        2 * t2 * sin(2 * ky))
 
-    dEs['ddE_dyy'] = 2 * t * cos(ky) + \
-        4 * t1 * cos(kx) * cos(ky) + \
-        8 * t2 * cos(2 * ky)
+    dEs['ddE_dyy'] = 2 * (t * cos(ky) +
+                          t1 * (cos(kx + ky) + cos(kx - ky)) +
+                          4 * t2 * cos(2 * ky))
 
     # Mixed derivative
-    dEs['ddE_dxdy'] = -4 * t1 * sin(kx) * sin(ky)
+    dEs['ddE_dxdy'] = 2 * t1 * (cos(kx + ky) - cos(kx - ky))
 
     return E, dEs
 
@@ -186,9 +186,9 @@ class Model:
 
         # Spectral functions (Non-interacting model + Peter's)
         if self.use_peter:
-            dict = read_locals(shape=(3, 4), interaction=8.0)
-            self.A = np.array([array for array in dict.values()])
-            self.mus = np.array([-1.25])
+            dict = read_fermi_arc()
+            self.A = np.array([1 / pi * array for array in dict.values()])
+            self.mus = np.array([-1.3, -1.0, -0.75, -0.4, 0.0])
 
             # Phase space grid(s)
             ks = arange(-pi, pi, 2*pi/200)
@@ -307,13 +307,14 @@ class Model:
         -------
         conductivity: float
         """
+        coeff = (-e)**2 * pi
         if variable == "x":
             dE = self.dEs['dE_dx']
 
         elif variable == "y":
             dE = self.dEs['dE_dy']
 
-        sigma_ii = dE**2 * self.A**2
+        sigma_ii = 2 * coeff * dE**2 * self.A**2
         conductivity = np.array([sigma.sum() for sigma in sigma_ii])
 
         return conductivity
@@ -327,12 +328,12 @@ class Model:
         -------
         conductivity: float
         """
-        coeff = 1 / 3
+        coeff = (-e)**3 * pi**2 / 3
         c1 = -2 * self.dEs['dE_dx'] * self.dEs['dE_dy'] * self.dEs['ddE_dxdy']
         c2 = self.dEs['dE_dx']**2 * self.dEs['ddE_dyy']
         c3 = self.dEs['dE_dy']**2 * self.dEs['ddE_dxx']
 
-        sigma_ij = coeff * (c1 + c2 + c3) * self.A**3
+        sigma_ij = 2 * coeff * (c1 + c2 + c3) * self.A**3
         conductivity = np.array([sigma.sum() for sigma in sigma_ij])
 
         return conductivity
@@ -362,7 +363,7 @@ class Model:
         """
         s_xy = self.sigma_ij()
         s_xx, s_yy = self.sigma_ii("x"), self.sigma_ii("y")
-        n_H = self.norm * s_xx * s_yy / s_xy
+        n_H = self.norm * s_xx * s_yy / (e * s_xy)
 
         return n_H
 
@@ -371,11 +372,11 @@ if __name__ == "__main__":
     N = Model(
         hopping_amplitudes=(1.0, -0.3, 0.2),
         omega=0.0,
-        eta=0.05,
-        mu_lims=(-4, 4, 600),
+        eta=0.1,
+        mu_lims=(-4.0, 4.0, 1000),
         v=1.0,
         beta=100,
-        resolution=600,
+        resolution=800,
         use_peter=False
     )
 
@@ -385,18 +386,14 @@ if __name__ == "__main__":
     # mu_idx = find_nearest(N.get_density(), peter_density)
     # mu = N.mus[mu_idx]
 
-    # p_densities = 1 - np.array([0.667, 1.0, 0.833])
+    # N.plot_spectral_weight(mu=-0.4, type='peter', key='N32')
 
     # Plot Hall number
     fig, ax = plt.subplots()
-    hall_nb = -2 * N.get_hall_nb()
+    hall_nb = N.get_hall_nb()
     p_densities = 1 - N.get_density()
+    # p_densities = 1 - np.array([0.667, 0.778, 0.833, 0.889, 1.0])
 
-    # for x, n, n_h in zip(N.mus, p_densities, hall_nb):
-    # ax.text(x, n + 0.25, "({:.2f}, {:.2f})".format(x, n))
-    # ax.text(n, n_h + 0.25, "({:.2f}, {:.2f})".format(n, n_h))
-
-    # ax.plot(N.mus, p_densities, ".-", label="Density $n$")
     ax.plot(p_densities, hall_nb, ".-", label="$n_H(p)$")
     ax.set_xlabel("Hole doping $p$")
     ax.set_ylabel("Hall number $n_H$")

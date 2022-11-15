@@ -105,7 +105,6 @@ def read_locals(shape: tuple[int], interaction: float):
 
     if not files:
         print(f"No model inside: {path}")
-        exit(0)
     else:
         pass
 
@@ -168,11 +167,28 @@ def find_nearest(array, value):
     return idx
 
 
-def plot_hall(file="./nqft/Data/hall.txt"):
+def plot_hall(files=["./nqft/Data/hall.txt"], x='doping'):
     """Plots hall coefficient as a function of interaction.
     """
-    data = np.loadtxt(file, delimiter=",")
-    plt.plot(data[:, 0], data[:, 1], label="$n_H(U)$")
+    for file in files:
+        if x == 'interaction':
+            data = np.loadtxt(file, delimiter=",")
+            plt.plot(
+                data[:, 0],
+                data[:, 1],
+                '.-',
+                label=f"$n_H(U)$, {file.split('/')[-1]}"
+            )
+        elif x == 'doping':
+            data = np.loadtxt(file, delimiter=",")
+            plt.plot(
+                data[:, 0],
+                data[:, 1],
+                '.-',
+                label=f"$n_H(p)$, {file.split('/')[-1]}"
+            )
+
+    # plt.ylim((-2, 2))
     plt.legend()
     plt.show()
 

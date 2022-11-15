@@ -6,13 +6,12 @@ experimentation.
 import os
 import sys
 import numpy as np
-from qutip import plot_berry_curvature
 from rich import print
 import importlib as iplib
 from matplotlib import cm
 from numpy import sin, cos
-from scipy.constants import pi
 import matplotlib.pyplot as plt
+from scipy.constants import pi, e
 
 from pyqcm import (
     new_cluster_model,
@@ -20,9 +19,10 @@ from pyqcm import (
     lattice_model,
     interaction_operator,
     hopping_operator,
-    sectors
+    sectors,
+    cluster_averages
 )
-from pyqcm.spectral import DoS, mdc
+from pyqcm.spectral import mdc
 from pyqcm import new_model_instance, set_parameters
 
 from nqft.functions import read_fermi_arc, plot_hall
@@ -62,13 +62,13 @@ class QcmModel:
 
     def __init__(self, shape: tuple[int], filling: int, interaction: float,
                  hoppings: tuple[float], broadening: float, resolution: int,
-                 tiling_shift: bool, overwrite=False) -> None:
+                 tiling_shift: bool, show_spectrum=False,
+                 overwrite=False) -> None:
         """Docs
         """
         # Cluster geometry related attributes
         self.shape = shape
         self.filling = filling
-        self.norm = 1 / resolution ** 2
         self.density = filling / (shape[0] * shape[1])
 
         # Path related attributes
@@ -88,7 +88,7 @@ class QcmModel:
 
         # Density of states & spectrum file names
         self.dos_file = f'dos/dos_n{filling}_U{u_str}.tsv'
-        self.spectrum_file = f'spectrums/spectrum_n{filling}_U{u_str}.npy'
+        self.spectrum_file = f'spectrums/spectrum_n{filling}_U{u_str}'
 
         # Import model's module if it has already been computed
         if overwrite:
@@ -131,7 +131,18 @@ class QcmModel:
                 t = {hoppings[0]}
                 tp = {hoppings[1]}
                 tpp = {hoppings[2]}
+                mu = 0.000000001
                 """
+            )
+
+            # Computing spectral weight
+            spectral = mdc(
+                freq=0.0,
+                nk=resolution,
+                eta=broadening,
+                sym='RXY',
+                # data_file=f'{self.model_path}/{self.spectrum_file}',
+                show=show_spectrum
             )
 
             # Instancing lattice model
@@ -143,6 +154,7 @@ class QcmModel:
             try:
                 iplib.import_module(
                     name=f'{self.module_name}.{self.file_name}')
+
                 print(f"Module '{self.file_name}' has been imported.\n")
 
             except ModuleNotFoundError:
@@ -162,41 +174,32 @@ class QcmModel:
         self.eta = broadening
         self.res = resolution
 
+        # Associating spectral function
+        self.spectrum = spectral / pi
+
         return
 
-    def get_spectrum(self, frequency=0.0, interp_density=None, show=True):
-        """Docs
+    def get_cluster_averages(self, operators: list[str]) -> dict:
+        """Computes single cluster operator averages.
+
+        Parameters
+        ----------
+        operators: list, default=None
+            Operators to keep in output dictionnary.
+
+        Returns
+        -------
+        out_dict: dict
+            Dictionnary containing operator names as keys and tuples as values
+            representing operator average and it's variance.
         """
-        if interp_density:
-            dos_path = f'{self.model_path}/{self.dos_file}'
+        avgs = cluster_averages()
+        out_dict = {i: j for i, j in avgs.items() if i in operators}
 
-            if os.path.isfile(dos_path):
-                data = np.loadtxt(dos_path, skiprows=1, dtype=np.complex64)
-                freqs, cumul_density = data[:, 0], data[:, 3]
+        return out_dict
 
-            else:
-                freqs, cumul_density = DoS(w=40.0, eta=self.eta,
-                                           data_file=dos_path
-                                           )
-
-            freq = np.interp(interp_density, np.real(cumul_density),
-                             np.real(freqs)
-                             )
-        else:
-            freq = frequency
-
-        spectrum = mdc(
-            freq=freq,
-            nk=self.res,
-            eta=self.eta,
-            sym='RXY',
-            # data_file=f'{self.model_path}/{self.spectrum_file}',
-            show=show
-        )
-
-        return spectrum
-
-    def plot_spectrums(self, peter_key: str, save=False):
+    def plot_spectrums(self, peter_key: str, type='contourf',
+                       save=False) -> plt.Figure:
         """Opens spectrums from (2x2, 3x4, 4x4) models and Peters spectrums
         array to compare the plot for given parameters.
 
@@ -206,12 +209,15 @@ class QcmModel:
             Determines which of Peter's array to compare.
             ('N24', 'N28', 'N30', 'N32', 'N36')
 
+        type: str, default='contourf'
+            Spectral plot type (contourf, pcolormesh).
+
         save: bool, default=False
             Saves of not the output plot.
 
         Returns
         -------
-        None
+        _: matplotlib.pyplot.Figure object
         """
         fig, axes = plt.subplots(ncols=2, tight_layout=True, figsize=(10, 4))
         axes[0].set(adjustable='box', aspect='equal')
@@ -226,8 +232,7 @@ class QcmModel:
         k_x_p, k_y_p = np.meshgrid(momentums, momentums)
 
         # Get spectral functions paths
-        peter_array = read_fermi_arc()[peter_key]
-        spectral = np.load(f'{self.model_path}/{self.spectrum_file}')
+        peter_array = 1 / pi * read_fermi_arc()[peter_key]
 
         # Fig title
         title = "{}/{} fill, $U=${}, $t=$[{}, {}, {}], $\eta=${}".format(
@@ -240,13 +245,23 @@ class QcmModel:
         axes[0].set_title(title)
 
         # Plot spectral weight
-        low_interaction = axes[0].contourf(
-            k_x,
-            k_y,
-            spectral,
-            cmap=cm.Purples,
-            extend='max'
-        )
+        if type == 'contourf':
+            low_interaction = axes[0].contourf(
+                k_x,
+                k_y,
+                self.spectrum,
+                cmap=cm.Purples,
+                extend='max'
+            )
+
+        elif type == 'pcolormesh':
+            low_interaction = axes[0].pcolormesh(
+                k_x,
+                k_y,
+                self.spectrum,
+                cmap=cm.Purples,
+            )
+
         fig.colorbar(low_interaction)
 
         # Fig title
@@ -257,22 +272,41 @@ class QcmModel:
         axes[1].set_title(title_p)
 
         # Plot one of Peter's spectral weight
-        peter_spectral = axes[1].contourf(
-            k_x_p,
-            k_y_p,
-            peter_array,
-            cmap=cm.Greens,
-            alpha=1.0,
-            extend='max'
-        )
+        if type == 'contourf':
+            peter_spectral = axes[1].contourf(
+                k_x_p,
+                k_y_p,
+                peter_array,
+                cmap=cm.Greens,
+                alpha=1.0,
+                extend='max'
+            )
 
-        axes[1].contourf(
-            k_x,
-            k_y,
-            spectral,
-            cmap=cm.Purples,
-            alpha=0.6
-        )
+            axes[1].contourf(
+                k_x,
+                k_y,
+                self.spectrum,
+                cmap=cm.Purples,
+                alpha=0.6
+            )
+
+        elif type == 'pcolormesh':
+            peter_spectral = axes[1].pcolormesh(
+                k_x_p,
+                k_y_p,
+                peter_array,
+                cmap=cm.Greens,
+                alpha=1.0,
+            )
+
+            axes[1].pcolormesh(
+                k_x,
+                k_y,
+                self.spectrum,
+                cmap=cm.Purples,
+                alpha=0.6
+            )
+
         fig.colorbar(peter_spectral)
 
         # Graph format & style
@@ -296,81 +330,109 @@ class QcmModel:
 
         return
 
-    def get_hall_coeff(self, spectral_weight: np.ndarray, file=None):
-        """Docs
-        """
-        # Computing model's energy derivatives
-        momentum = np.linspace(-pi, pi, spectral_weight.shape[0])
-        k_x, k_y = np.meshgrid(momentum, momentum)
 
-        dEs = {
-            'dE_dx': None,
-            'ddE_dxx': None,
-            'dE_dy': None,
-            'ddE_dyy': None,
-            'ddE_dxdy': None
-        }
+def get_hall_coeff(spectral_weight: np.ndarray, hoppings: tuple[float],
+                   x_coord=None, file="./nqft/Data/hall.txt") -> float:
+    """Computes Hall coefficient for given parameters and writes it to a file
+    using specified x coordinate.
 
-        # Ex derivatives
-        dEs['dE_dx'] = 2 * self.t * sin(k_x) + \
-            4 * self.tp * sin(k_x) * cos(k_y) + \
-            4 * self.tpp * sin(2 * k_x)
+    Parameters
+    ----------
+    spectral_weight: np.ndarray, shape=(N, M), default=None
+        Spectral function used to compute Hall coefficient.
 
-        dEs['ddE_dxx'] = 2 * self.t * cos(k_x) + \
-            4 * self.tp * cos(k_x) * cos(k_y) + \
-            8 * self.tpp * cos(2 * k_x)
+    hoppings: tuple[float], size=3, default=None
+        Hopping amplitudes corresponding to spectral function.
 
-        # Ey derivatives
-        dEs['dE_dy'] = 2 * self.t * sin(k_y) + \
-            4 * self.tp * cos(k_x) * cos(k_y) + \
-            4 * self.tpp * sin(2 * k_y)
+    x_coord: float/int, default=None
+        X coordinate to use if writting Hall coefficient to a file.
+        (Makes plotting easier and faster)
 
-        dEs['ddE_dyy'] = 2 * self.t * cos(k_y) + \
-            4 * self.tp * cos(k_x) * cos(k_y) + \
-            8 * self.tpp * cos(2 * k_y)
+    file: str, default="./nqft/Data/hall.txt"
+        Path to file in which write Hall coefficient and given x coord.
 
-        # Mixed derivative
-        dEs['ddE_dxdy'] = -4 * self.tp * sin(k_x) * sin(k_y)
+    Returns
+    -------
+    n_h: float
+        Hall coefficient as a float.
+    """
+    # Computing model's energy derivatives
+    t, tp, tpp = hoppings
+    normalize = 1 / spectral_weight.shape[0]**2
+    momentum = np.linspace(-pi, pi, spectral_weight.shape[0])
+    k_x, k_y = np.meshgrid(momentum, momentum)
 
-        # Computing conductivities (ii)
-        sigma_xx = (dEs['dE_dx']**2 * spectral_weight**2).sum()
-        sigma_yy = (dEs['dE_dy']**2 * spectral_weight**2).sum()
+    # Ex derivatives
+    dE_dx = 2 * (t * sin(k_x) +
+                 tp * (sin(k_x - k_y) + sin(k_x + k_y)) +
+                 2 * tpp * sin(2 * k_x))
 
-        # Computing conductivity (ij)
-        coeff = 1 / 3
-        xy_1 = -2 * dEs['dE_dx'] * dEs['dE_dy'] * dEs['ddE_dxdy']
-        xy_2 = dEs['dE_dx']**2 * dEs['ddE_dyy'] + \
-            dEs['dE_dy']**2 * dEs['ddE_dxx']
-        sigma_xy = coeff * ((xy_1 + xy_2) * spectral_weight**3).sum()
+    ddE_dxx = 2 * (t * cos(k_x) +
+                   tp * (cos(k_x - k_y) + cos(k_x + k_y)) +
+                   4 * tpp * cos(2 * k_x))
 
-        # Computing Hall coefficient
-        n_h = self.norm * sigma_xx * sigma_yy / sigma_xy
+    # Ey derivatives
+    dE_dy = 2 * (t * sin(k_y) +
+                 tp * (sin(k_x + k_y) - sin(k_x - k_y)) +
+                 2 * tpp * sin(2 * k_y))
 
-        if file:
-            with open(file, "a") as file:
-                file.write(f'{self.u},{n_h}\n')
-                file.close()
-        else:
-            pass
+    ddE_dyy = 2 * (t * cos(k_y) +
+                   tp * (cos(k_x + k_y) + cos(k_x - k_y)) +
+                   4 * tpp * cos(2 * k_y))
 
-        return n_h
+    # Mixed derivative
+    ddE_dxdy = 2 * tp * (cos(k_x + k_y) - cos(k_x - k_y))
+
+    # Computing conductivities (ii)
+    coeff_ii = (-e)**2 * pi
+    sigma_xx = 2 * coeff_ii * (dE_dx**2 * spectral_weight**2).sum()
+    sigma_yy = 2 * coeff_ii * (dE_dy**2 * spectral_weight**2).sum()
+
+    # Computing conductivity (ij)
+    coeff_ij = (-e)**3 * pi**2 / 3
+    xy_1 = -2 * dE_dx * dE_dy * ddE_dxdy
+    xy_2 = (dE_dx**2 * ddE_dyy) + (dE_dy**2 * ddE_dxx)
+    sigma_xy = 2 * coeff_ij * ((xy_1 + xy_2) * spectral_weight**3).sum()
+
+    # Computing Hall coefficient
+    n_h = normalize * sigma_xx * sigma_yy / (e * sigma_xy)
+
+    if file and x_coord:
+        with open(file, "a") as file:
+            file.write(f'{x_coord},{n_h}\n')
+            file.close()
+    else:
+        print(f"User must give some 'x coordinate' to write data in: {file}")
+
+    return n_h
 
 
 if __name__ == "__main__":
-    u = float(sys.argv[1])
+    u = 1.0
+    fill = int(sys.argv[1])
+    hops = (1.0, -0.3, 0.2)
 
     lattice = QcmModel(
-        shape=(3, 4),
-        filling=12,
+        shape=(2, 2),
+        filling=fill,
         interaction=u,
-        hoppings=(-1.0, 0.3, -0.2),
+        hoppings=hops,
         broadening=0.05,
-        resolution=200,
+        resolution=1000,
         tiling_shift=False,
+        show_spectrum=False,
         overwrite=True
     )
 
-    A = lattice.get_spectrum(show=False)
+    # lattice.plot_spectrums(peter_key="N36")
+    cluster_avgs = lattice.get_cluster_averages(operators=['mu'])
+    d_clus = 1.0 - cluster_avgs['mu'][0]
 
-    n_h = lattice.get_hall_coeff(spectral_weight=A)
-    print(n_h)
+    # n_h = get_hall_coeff(
+    #     lattice.spectrum,
+    #     hops,
+    #     x_coord=d_clus,
+    #     file="./nqft/Data/n_h_filling_U05.txt"
+    # )
+
+    # plot_hall(files=["./nqft/Data/n_h_filling_U05.txt"], x='doping')
