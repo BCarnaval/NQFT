@@ -222,6 +222,7 @@ class Model:
             )
 
             self.A = get_spectral_weight(self.omega, self.eta, self.E)
+            np.savetxt("./nqft/Data/test_test.csv", self.A[0])
 
         return
 
@@ -255,7 +256,7 @@ class Model:
             imported_title = "Local model 3x4"
 
         elif type == "peter":
-            imported_A = self.A_Peter[key]
+            imported_A = 1 / pi * self.A_Peter[key]
             imported_title = "Peter's model: {}".format(key)
 
         # Condition to plot Peter's data over colormesh (with some alpha)
@@ -373,14 +374,14 @@ if __name__ == "__main__":
         hopping_amplitudes=(1.0, -0.3, 0.2),
         omega=0.0,
         eta=0.1,
-        mu_lims=(-4.0, 4.0, 1000),
+        mu_lims=(0.0, 0.0, 1),
         v=1.0,
         beta=100,
-        resolution=800,
+        resolution=200,
         use_peter=False
     )
 
-    # N.plot_spectral_weight(mu=0.0, type='local', key='10')
+    N.plot_spectral_weight(mu=0.0, type='peter', key='N36')
     # Spectral weight
     # peter_model, peter_density = "N36", 0.889
     # mu_idx = find_nearest(N.get_density(), peter_density)
@@ -389,15 +390,15 @@ if __name__ == "__main__":
     # N.plot_spectral_weight(mu=-0.4, type='peter', key='N32')
 
     # Plot Hall number
-    fig, ax = plt.subplots()
-    hall_nb = N.get_hall_nb()
-    p_densities = 1 - N.get_density()
+    # fig, ax = plt.subplots()
+    # hall_nb = N.get_hall_nb()
+    # p_densities = 1 - N.get_density()
     # p_densities = 1 - np.array([0.667, 0.778, 0.833, 0.889, 1.0])
 
-    ax.plot(p_densities, hall_nb, ".-", label="$n_H(p)$")
-    ax.set_xlabel("Hole doping $p$")
-    ax.set_ylabel("Hall number $n_H$")
-    ax.set_ylim([-2, 2])
+    # ax.plot(p_densities, hall_nb, ".-", label="$n_H(p)$")
+    # ax.set_xlabel("Hole doping $p$")
+    # ax.set_ylabel("Hall number $n_H$")
+    # ax.set_ylim([-2, 2])
 
-    plt.legend()
-    plt.show()
+    # plt.legend()
+    # plt.show()

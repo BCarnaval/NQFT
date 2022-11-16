@@ -196,7 +196,7 @@ def plot_hall(files=["./nqft/Data/hall.txt"], x='doping') -> plt.Figure:
                 label=f"$n_H(p)$, {file.split('/')[-1]}"
             )
 
-    # plt.ylim((-2, 2))
+    plt.ylim((-2, 2))
     plt.legend()
     plt.show()
 

@@ -14,16 +14,18 @@ import matplotlib.pyplot as plt
 from scipy.constants import pi, e
 
 from pyqcm import (
+    averages,
     new_cluster_model,
     add_cluster,
     lattice_model,
     interaction_operator,
     hopping_operator,
     sectors,
-    cluster_averages
+    cluster_averages,
+    new_model_instance,
+    set_parameters
 )
 from pyqcm.spectral import mdc
-from pyqcm import new_model_instance, set_parameters
 
 from nqft.functions import read_fermi_arc, plot_hall
 
@@ -61,8 +63,8 @@ class QcmModel:
     """
 
     def __init__(self, shape: tuple[int], filling: int, interaction: float,
-                 hoppings: tuple[float], broadening: float, resolution: int,
-                 tiling_shift: bool, show_spectrum=False,
+                 hoppings: tuple[float], broadening: float, mu: float,
+                 resolution: int, tiling_shift: bool, show_spectrum=False,
                  overwrite=False) -> None:
         """Docs
         """
@@ -93,11 +95,7 @@ class QcmModel:
         # Import model's module if it has already been computed
         if overwrite:
             # Building cluster
-            new_cluster_model(
-                name="clus",
-                n_sites=shape[0] * shape[1],
-                n_bath=0
-            )
+            new_cluster_model(name="clus", n_sites=shape[0] * shape[1])
             add_cluster(name="clus", pos=[0, 0, 0], sites=build_matrix(shape))
 
             # Initialiazing lattice using built cluster
@@ -131,7 +129,7 @@ class QcmModel:
                 t = {hoppings[0]}
                 tp = {hoppings[1]}
                 tpp = {hoppings[2]}
-                mu = 0.000000001
+                mu = {mu}
                 """
             )
 
@@ -160,6 +158,7 @@ class QcmModel:
 
         # 'pyqcm' Parameters
         self.u = interaction
+        self.mu = mu
         self.t, self.tp, self.tpp = hoppings
         self.eta = broadening
         self.res = resolution
@@ -178,6 +177,22 @@ class QcmModel:
         self.spectrum = spectral / pi
 
         return
+
+    def get_lattice_averages(self, operators: list[str]) -> dict:
+        """Computes lattice operator averages.
+
+        Parameters
+        ----------
+        operators: list, default=None
+            Operators on which get average.
+
+        Returns
+        -------
+        _: dict
+            Dictionnary containing operator names as keys and average as
+            values.
+        """
+        return averages(ops=operators)
 
     def get_cluster_averages(self, operators: list[str]) -> dict:
         """Computes single cluster operator averages.
@@ -219,7 +234,7 @@ class QcmModel:
         -------
         _: matplotlib.pyplot.Figure object
         """
-        fig, axes = plt.subplots(ncols=2, tight_layout=True, figsize=(10, 4))
+        fig, axes = plt.subplots(ncols=2, tight_layout=True, figsize=(9, 4))
         axes[0].set(adjustable='box', aspect='equal')
         axes[1].set(adjustable='box', aspect='equal')
 
@@ -408,8 +423,9 @@ def get_hall_coeff(spectral_weight: np.ndarray, hoppings: tuple[float],
 
 
 if __name__ == "__main__":
-    u = 1.0
-    fill = int(sys.argv[1])
+    u = 0.01
+    mu = float(sys.argv[1])
+    fill = int(sys.argv[2])
     hops = (1.0, -0.3, 0.2)
 
     lattice = QcmModel(
@@ -417,22 +433,30 @@ if __name__ == "__main__":
         filling=fill,
         interaction=u,
         hoppings=hops,
-        broadening=0.05,
-        resolution=1000,
+        broadening=0.1,
+        mu=mu,
+        resolution=200,
         tiling_shift=True,
-        show_spectrum=False,
-        overwrite=True
+        show_spectrum=True,
+        overwrite=False
     )
 
+    # Plots
     # lattice.plot_spectrums(peter_key="N36")
-    cluster_avgs = lattice.get_cluster_averages(operators=['mu'])
-    d_clus = 1.0 - cluster_avgs['mu'][0]
 
-    # n_h = get_hall_coeff(
-    #     lattice.spectrum,
-    #     hops,
-    #     x_coord=d_clus,
-    #     file="./nqft/Data/n_h_filling_U05.txt"
-    # )
+    # Averages
+    # cluster_avgs = lattice.get_cluster_averages(operators=['mu'])
+    # d_clus = 1.0 - cluster_avgs['mu'][0]
 
-    # plot_hall(files=["./nqft/Data/n_h_filling_U05.txt"], x='doping')
+    lattice_avgs = lattice.get_lattice_averages(operators=['mu'])
+    d_latt = 1.0 - lattice_avgs['mu']
+
+    # Hall
+    n_h = get_hall_coeff(
+        lattice.spectrum,
+        hops,
+        x_coord=d_latt,
+        file="./nqft/Data/n_h_pos_rencontre.txt"
+    )
+
+    # plot_hall(files=["./nqft/Data/n_h_rencontre.txt"], x='doping')
