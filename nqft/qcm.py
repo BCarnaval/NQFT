@@ -414,10 +414,10 @@ def get_hall_coeff(spectral_weight: np.ndarray, hoppings: tuple[float],
 
     if file and x_coord:
         with open(file, "a") as file:
-            file.write(f'{x_coord},{n_h}\n')
+            file.write(f'{x_coord} {n_h}\n')
             file.close()
     else:
-        print(f"User must give some 'x coordinate' to write data in: {file}")
+        print(f"User must give 'x coordinate' to write data in: {file}")
 
     return n_h
 
@@ -435,10 +435,10 @@ if __name__ == "__main__":
         hoppings=hops,
         broadening=0.1,
         mu=mu,
-        resolution=200,
+        resolution=400,
         tiling_shift=True,
-        show_spectrum=True,
-        overwrite=False
+        show_spectrum=False,
+        overwrite=True
     )
 
     # Plots
@@ -456,7 +456,5 @@ if __name__ == "__main__":
         lattice.spectrum,
         hops,
         x_coord=d_latt,
-        file="./nqft/Data/n_h_pos_rencontre.txt"
+        file="./nqft/Data/n_h_3x4_n12_U001_eta01.txt"
     )
-
-    # plot_hall(files=["./nqft/Data/n_h_rencontre.txt"], x='doping')
