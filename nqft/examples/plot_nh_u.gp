@@ -28,16 +28,12 @@ set xzeroaxis lt 1 lw 1 lc "#000000"
 set yzeroaxis lt 1 lw 1 lc "#000000"
 
 plot './nqft/Data/hall_2x2/n_h_2x2_n4_U001_eta01.txt' u 1:2 w lp ls 1 t '2x2, 0.01', \
-     './nqft/Data/hall_3x4/n_h_3x4_n12_U001_eta01.txt' u 1:2 w lp ls 6 t '3x4, 0.01', \
      './nqft/Data/hall_2x2/n_h_2x2_n4_U2_eta01.txt' u 1:2 w lp ls 4 t '2x2, 2', \
-     './nqft/Data/hall_3x4/n_h_3x4_n12_U2_eta01.txt' u 1:2 w lp ls 5 t '3x4, 2', \
-
-#     './nqft/Data/hall_2x2/n_h_2x2_n4_U05_eta01.txt' u 1:2 w lp ls 2 t '2x2, 0.5', \
-#     './nqft/Data/hall_2x2/n_h_2x2_n4_U1_eta01.txt' u 1:2 w lp ls 3 t '2x2, 1', \
-
-#     './nqft/Data/hall_2x2/n_h_2x2_n4_U3_eta01.txt' u 1:2 w lp ls 5 t '2x2, 3', \
-#     './nqft/Data/hall_2x2/n_h_2x2_n4_U4_eta01.txt' u 1:2 w lp ls 6 t '2x2, 4', \
-#     './nqft/Data/hall_2x2/n_h_2x2_n4_U8_eta01.txt' u 1:2 w lp ls 7 t '2x2, 8', \
+     './nqft/Data/hall_2x2/n_h_2x2_n4_U05_eta01.txt' u 1:2 w lp ls 2 t '2x2, 0.5', \
+     './nqft/Data/hall_2x2/n_h_2x2_n4_U1_eta01.txt' u 1:2 w lp ls 3 t '2x2, 1', \
+     './nqft/Data/hall_2x2/n_h_2x2_n4_U3_eta01.txt' u 1:2 w lp ls 5 t '2x2, 3', \
+     './nqft/Data/hall_2x2/n_h_2x2_n4_U4_eta01.txt' u 1:2 w lp ls 6 t '2x2, 4', \
+     './nqft/Data/hall_2x2/n_h_2x2_n4_U8_eta01.txt' u 1:2 w lp ls 7 t '2x2, 8', \
 
 unset output
 
