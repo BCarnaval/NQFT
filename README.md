@@ -37,13 +37,13 @@
 In order to use this repository swimmingly, Python package manager [Poetry](https://python-poetry.org/) is recommended. It provides a easy dependencies managing for Python projects and gives user the ability of updating packages, build the project and even publish it on [PyPI](https://pypi.org/). Users having Unix based OS can install it via
 
 ```shell
-$ curl -sSL https://install.python-poetry.org | python3 -
+curl -sSL https://install.python-poetry.org | python3 -
 ```
 
 that obviously depends on Python3. Then, to create/sync your current environnement with the project dependencies using `pyproject.toml` and `poery.lock` files, you can simply use
 
 ```shell
-$ poetry install
+poetry install
 ```
 
 and [Poetry](https://python-poetry.org/) will automatically create a Python virtual environnement including all[^1] the packages needed for the project to be functionnal.

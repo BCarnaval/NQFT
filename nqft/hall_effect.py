@@ -223,7 +223,6 @@ class Model:
             )
 
             self.A = get_spectral_weight(self.omega, self.eta, self.E)
-            np.savetxt("./nqft/Data/test_test.csv", self.A[0])
 
         return
 
@@ -381,11 +380,11 @@ if __name__ == "__main__":
         hopping_amplitudes=(1.0, -0.3, 0.2),
         omega=0.0,
         eta=0.1,
-        mu_lims=(0.0, 0.0, 1),
+        mu_lims=(-4.0, 4.0, 200),
         v=1.0,
         beta=100,
         resolution=200,
-        use_peter=True
+        use_peter=False
     )
     # Plot spectral weight
     # N.plot_spectral_weight(mu=-0.4, type='peter', key='N32')

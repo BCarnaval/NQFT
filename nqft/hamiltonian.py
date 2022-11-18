@@ -18,14 +18,19 @@ class Network:
     ----------
     sites_nb: int, default=None
         Number of sites of the network
+
     vaccum: Qobj, shape=(2, 1)
         Vaccum state of 2D Fock space.
+
     creation: Qobj, shape=(2, 2)
         Creation operator in second quantization formalism.
+
     anihilation: Qobj, shape=(2, 2)
         Anihilation operator in second quantization formalism.
+
     number: Qobj, shape=(2, 2)
         Number operator in second quantization formalism.
+
     I: Qobj, shape=(2, 2)
         Identity operator.
     """
@@ -50,6 +55,7 @@ class Network:
         ----------
         state: int, default=None
             Integer representing state number in Fock space.
+
         type: str, default='ket'
             Type of vector outputed (bra, ket)
 
@@ -62,7 +68,7 @@ class Network:
         --------
         >>> N = Network(sites_nb=1)
         >>> self.get_state(state=2)
-        >>> Quantum object: dims = [[2, 2], [1, 1]], shape = (4, 1), type = ket
+        Quantum object: dims = [[2, 2], [1, 1]], shape = (4, 1), type = ket
         Qobj data =
         [[0.]
          [0.]
@@ -91,8 +97,10 @@ class Network:
         ----------
         model: str, default=None
             Fermions network configuration.
+
         U: int, default=None
             Module of interaction between fermions.
+
         **kwargs:
             t: int, default=None
                 Probability amplitude for fermions to jump.
@@ -106,7 +114,7 @@ class Network:
         --------
         >>> N = Network(sites_nb=4)
         >>> N.get_hamiltonian(model="Hubbard", U=1, t=1)
-        >>> Quantum object: dims = [[2, 2, 2, 2, 2, 2, 2, 2],
+        Quantum object: dims = [[2, 2, 2, 2, 2, 2, 2, 2],
         [2, 2, 2, 2, 2, 2, 2, 2]], shape = (256, 256), type = oper,
         isherm = True Qobj data =
         [[ 0.  0.  0. ...  0.  0.  0.]
@@ -159,6 +167,7 @@ class Network:
         ----------
         H: Qobj, shape=(4^self.sites, 4^self.sites), default=None
             Fermions network hamiltonian.
+
         states: array-like, shape=(2, 1), default=None
             Vectors used to process scalar product on H.
 
@@ -174,7 +183,7 @@ class Network:
         >>> N = Network(sites_nb=2)
         >>> Hamiltonian = N.get_hamiltonian(model="Hubbard", U=2, t=1)
         >>> N.get_e(H=Hamiltonian, states=[15, 15])
-        >>> 2.0
+        2.0
         """
         bra = self.get_state(states[0], type="bra")
         ket = self.get_state(states[1])
@@ -189,8 +198,10 @@ class Network:
         ----------
         H: Qobj, shape=(4^self.sites, 4^self.sites), default=None
             Fermions network hamiltonian.
+
         iterations: int, default=None
             Number of iterations on which perform the algorithm.
+
         init_state: QObj, shape=(4^self.sites, 1) default=random
             Initial quantum state to start the first iteration.
 
@@ -204,7 +215,7 @@ class Network:
         >>> N = Network(sites_nb=2)
         >>> Hamitonian = N.get_hamiltonian(model="Hubbard", U=1, t=1)
         >>> N.lanczos(H=Hamiltonian, iterations=10)
-        >>> (2.561552779602264, Quantum object: dims = [[10], [1]],
+        (2.561552779602264, Quantum object: dims = [[10], [1]],
         shape = (10, 1), type = ket Qobj data =
         [[0.43516215]
          [0.78820544]

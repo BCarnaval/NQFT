@@ -47,7 +47,7 @@ def build_matrix(shape: tuple) -> list:
     Examples
     --------
     >>> build_matrix(shape=(2, 2))
-    >>> [[0, 0, 0], [1, 0, 0], [0, 1, 0], [1, 1, 0]]
+    [[0, 0, 0], [1, 0, 0], [0, 1, 0], [1, 1, 0]]
     """
     array, idty = [], np.identity(3, dtype=np.int16)
     for i in range(shape[0]):

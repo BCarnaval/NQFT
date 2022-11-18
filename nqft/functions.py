@@ -99,10 +99,9 @@ def read_locals(shape: tuple[int], interaction: float) -> dict:
 
     Returns
     -------
-
-
-    Examples
-    --------
+    spectrums: dict
+        Dictionnary containing all spectrums (values) associated with a
+        specific density (keys).
     """
     U_f_to_str = str(interaction).split('.')
     U_str = "".join(U_f_to_str if U_f_to_str[-1] != '0' else U_f_to_str[:-1])
