@@ -430,7 +430,7 @@ if __name__ == "__main__":
     hops = (1.0, -0.3, 0.2)
 
     lattice = QcmModel(
-        shape=(3, 4),
+        shape=(2, 2),
         filling=fill,
         interaction=u,
         hoppings=hops,
@@ -450,13 +450,14 @@ if __name__ == "__main__":
     # cluster_avgs = lattice.get_cluster_averages(operators=['mu'])
     # d_clus = 1.0 - cluster_avgs['mu'][0]
 
-    lattice_avgs = lattice.get_lattice_averages(operators=['mu'])
-    d_latt = 1.0 - lattice_avgs['mu']
+    # lattice_avgs = lattice.get_lattice_averages(operators=['mu'])
+    # d_latt = 1.0 - lattice_avgs['mu']
 
     # Hall
+    peter = read_fermi_arc()["N24"]
     n_h = get_hall_coeff(
-        lattice.spectrum,
+        peter,
         hops,
-        x_coord=d_latt,
-        file=f"./nqft/Data/hall_3x4/n_h_3x4_n{fill}_U2_eta01.txt"
+        # x_coord=d_latt,
+        # file=f"./nqft/Data/hall_3x4/n_h_3x4_n{fill}_U2_eta01.txt"
     )

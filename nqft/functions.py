@@ -7,7 +7,6 @@ containing spectral function.
 
 import numpy as np
 import pandas as pd
-from glob import glob
 from rich import print
 from qutip import Qobj
 from scipy.constants import pi
@@ -85,41 +84,6 @@ def read_fermi_arc(path="./nqft/Data/fermi_arc_data/") -> dict:
     }
 
     return arcs
-
-
-def read_locals(shape: tuple[int], interaction: float) -> dict:
-    """Reads local model's spectral functions for given shape
-    and electronic density.
-
-    Parameters
-    ----------
-    shape: tuple, size=2, default=None
-        Shape of the clusters.
-
-    filling: int, default=None
-        Number of electrons in each cluster.
-
-    Returns
-    -------
-    spectrums: dict
-        Dictionnary containing all spectrums (values) associated with a
-        specific density (keys).
-    """
-    U_f_to_str = str(interaction).split('.')
-    U_str = "".join(U_f_to_str if U_f_to_str[-1] != '0' else U_f_to_str[:-1])
-
-    path = f"./nqft/Data/model_{shape[0]}x{shape[1]}/spectrums"
-    files = glob(f"{path}/spectrum_n*_U{U_str}.npy")
-
-    if not files:
-        print(f"No model inside: {path}")
-    else:
-        pass
-
-    density = [n.split("_n")[-1].split("_")[0] for n in files]
-    spectrums = {n: np.load(file) for n, file in zip(density, files)}
-
-    return spectrums
 
 
 def flatten_fermi_arc(save_path="./nqft/Data/fermi_arc_data_1D/",
