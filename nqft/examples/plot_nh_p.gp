@@ -17,7 +17,8 @@ set style function lines
 set xzeroaxis lt 1 lw 1 lc "#000000"
 set yzeroaxis lt 1 lw 1 lc "#000000"
 
-plot 'nqft/examples/n_h_article.dat' u 2:3 w lp ls 1 t '$n_H(p)$ (article)', './nqft/Data/n_h_3x4_n12_U001_eta01.txt' u 1:2 w lp ls 2 t '$n_H(p)$ (pyqcm)'
+plot 'nqft/examples/n_h_article.dat' u 2:3 w lp ls 1 t '$n_H(p)$ (article)', \
+     './nqft/Data/n_h_3x4_n12_U001_eta01.txt' u 1:2 w lp ls 2 t '$n_H(p)$ (pyqcm)'
 
 unset output
 

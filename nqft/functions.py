@@ -4,9 +4,11 @@ other Fock space operations.
 """
 
 import numpy as np
+import pandas as pd
 from glob import glob
 from rich import print
 from qutip import Qobj
+from scipy.constants import pi
 import matplotlib.pyplot as plt
 
 
@@ -19,6 +21,7 @@ def scalar(m: Qobj, n=None) -> float:
     ----------
     m: qutip.Qobj, default=None
         Bra on which perform scalar product.
+
     n: qutip.Qobj, default=None
         Ket on which perform scalar product.
 
@@ -41,6 +44,7 @@ def delta(j: int, k: int) -> float:
     ----------
     j: int, default=None
         First indice.
+
     k: int, default=None
         Second indice.
 
@@ -74,7 +78,9 @@ def read_fermi_arc(path="./nqft/Data/fermi_arc_data/") -> dict:
     ]
 
     extensions = ["N24", "N28", "N30", "N32", "N36"]
-    arcs = {ext: np.load(file) for ext, file in zip(extensions, files)}
+    arcs = {
+        ext: 1 / pi * np.load(file) for ext, file in zip(extensions, files)
+    }
 
     return arcs
 
@@ -87,6 +93,7 @@ def read_locals(shape: tuple[int], interaction: float) -> dict:
     ----------
     shape: tuple, size=2, default=None
         Shape of the clusters.
+
     filling: int, default=None
         Number of electrons in each cluster.
 
@@ -203,5 +210,35 @@ def plot_hall(files=["./nqft/Data/hall.txt"], x='doping') -> plt.Figure:
     return
 
 
+def add_column(file: str, column: np.array, idx: int) -> None:
+    """Insert new data to given text file as a column.
+
+    Parameters
+    ----------
+    file: str, default=None
+        File in which add column.
+
+    column: np.array, default=None
+        Data column to add.
+
+    idx: int, default=0
+        Index of the new column inside current file.
+    """
+    file_to_df = pd.read_csv(file, delimiter=' ', header=None)
+
+    if len(file_to_df[0]) != len(column):
+        print(f"Data column must have same dimension as: {file}")
+        print(f"Found dimension of: {len(column)} and {len(file_to_df)}.")
+        return
+
+    else:
+        file_to_df.insert(idx, column)
+        file_to_df.to_csv(file, sep=' ', header=False, index=False)
+
+    return
+
+
 if __name__ == "__main__":
-    flatten_fermi_arc()
+    file = "./nqft/Data/..."
+    column = np.arange(-4, 4, 0.05)
+    add_column(file=file, column=column, idx=0)

@@ -9,6 +9,7 @@ from matplotlib import cm
 from functools import wraps
 import matplotlib.pyplot as plt
 from scipy.constants import pi, e
+from scipy.optimize import curve_fit
 from dataclasses import dataclass, field
 from numpy import arange, meshgrid, sin, cos, exp
 
@@ -52,10 +53,10 @@ def dE(hop_amps: tuple, kx: np.ndarray, ky: np.ndarray, mu: np.array) -> tuple:
         Energies and it's derivatives in a tuple.
     """
     # Energy
-    t, t1, t2 = hop_amps
+    t, tp, tpp = hop_amps
     a = -2 * t * (cos(kx) + cos(ky))
-    b = -2 * t1 * (cos(kx + ky) + cos(kx - ky))
-    c = -2 * t2 * (cos(2 * kx) + cos(2 * ky))
+    b = -2 * tp * (cos(kx + ky) + cos(kx - ky))
+    c = -2 * tpp * (cos(2 * kx) + cos(2 * ky))
 
     E = np.array([a + b + c - i for i in mu])
 
@@ -69,24 +70,24 @@ def dE(hop_amps: tuple, kx: np.ndarray, ky: np.ndarray, mu: np.array) -> tuple:
 
     # Ex derivatives
     dEs['dE_dx'] = 2 * (t * sin(kx) +
-                        t1 * (sin(kx - ky) + sin(kx + ky)) +
-                        2 * t2 * sin(2 * kx))
+                        tp * (sin(kx - ky) + sin(kx + ky)) +
+                        2 * tpp * sin(2 * kx))
 
     dEs['ddE_dxx'] = 2 * (t * cos(kx) +
-                          t1 * (cos(kx - ky) + cos(kx + ky)) +
-                          4 * t2 * cos(2 * kx))
+                          tp * (cos(kx - ky) + cos(kx + ky)) +
+                          4 * tpp * cos(2 * kx))
 
     # Ey derivatives
     dEs['dE_dy'] = 2 * (t * sin(ky) +
-                        t1 * (sin(kx + ky) - sin(kx - ky)) +
-                        2 * t2 * sin(2 * ky))
+                        tp * (sin(kx + ky) - sin(kx - ky)) +
+                        2 * tpp * sin(2 * ky))
 
     dEs['ddE_dyy'] = 2 * (t * cos(ky) +
-                          t1 * (cos(kx + ky) + cos(kx - ky)) +
-                          4 * t2 * cos(2 * ky))
+                          tp * (cos(kx + ky) + cos(kx - ky)) +
+                          4 * tpp * cos(2 * ky))
 
     # Mixed derivative
-    dEs['ddE_dxdy'] = 2 * t1 * (cos(kx + ky) - cos(kx - ky))
+    dEs['ddE_dxdy'] = 2 * tp * (cos(kx + ky) - cos(kx - ky))
 
     return E, dEs
 
@@ -187,7 +188,7 @@ class Model:
         # Spectral functions (Non-interacting model + Peter's)
         if self.use_peter:
             dict = read_fermi_arc()
-            self.A = np.array([1 / pi * array for array in dict.values()])
+            self.A = np.array([array for array in dict.values()])
             self.mus = np.array([-1.3, -1.0, -0.75, -0.4, 0.0])
 
             # Phase space grid(s)
@@ -256,7 +257,7 @@ class Model:
             imported_title = "Local model 3x4"
 
         elif type == "peter":
-            imported_A = 1 / pi * self.A_Peter[key]
+            imported_A = self.A_Peter[key]
             imported_title = "Peter's model: {}".format(key)
 
         # Condition to plot Peter's data over colormesh (with some alpha)
@@ -315,8 +316,8 @@ class Model:
         elif variable == "y":
             dE = self.dEs['dE_dy']
 
-        sigma_ii = 2 * coeff * dE**2 * self.A**2
-        conductivity = np.array([sigma.sum() for sigma in sigma_ii])
+        sigma_ii = dE**2 * self.A**2
+        conductivity = np.array([2 * coeff * sig.sum() for sig in sigma_ii])
 
         return conductivity
 
@@ -334,8 +335,8 @@ class Model:
         c2 = self.dEs['dE_dx']**2 * self.dEs['ddE_dyy']
         c3 = self.dEs['dE_dy']**2 * self.dEs['ddE_dxx']
 
-        sigma_ij = 2 * coeff * (c1 + c2 + c3) * self.A**3
-        conductivity = np.array([sigma.sum() for sigma in sigma_ij])
+        sigma_ij = (c1 + c2 + c3) * self.A**3
+        conductivity = np.array([2 * coeff * sig.sum() for sig in sigma_ij])
 
         return conductivity
 
@@ -369,6 +370,12 @@ class Model:
         return n_H
 
 
+def fit_lin(x: np.array, a: float, b: float) -> np.array:
+    """Linear function.
+    """
+    return a * x + b
+
+
 if __name__ == "__main__":
     N = Model(
         hopping_amplitudes=(1.0, -0.3, 0.2),
@@ -378,27 +385,59 @@ if __name__ == "__main__":
         v=1.0,
         beta=100,
         resolution=200,
-        use_peter=False
+        use_peter=True
     )
-
-    N.plot_spectral_weight(mu=0.0, type='peter', key='N36')
-    # Spectral weight
-    # peter_model, peter_density = "N36", 0.889
-    # mu_idx = find_nearest(N.get_density(), peter_density)
-    # mu = N.mus[mu_idx]
-
+    # Plot spectral weight
     # N.plot_spectral_weight(mu=-0.4, type='peter', key='N32')
 
     # Plot Hall number
-    # fig, ax = plt.subplots()
-    # hall_nb = N.get_hall_nb()
+    fig, ax = plt.subplots()
+    hall_nb = N.get_hall_nb()
     # p_densities = 1 - N.get_density()
-    # p_densities = 1 - np.array([0.667, 0.778, 0.833, 0.889, 1.0])
+    p_densities = 1 - np.array([0.66666666666, 0.77777777777, 0.83333333333,
+                                0.88888888888, 1.0])
 
-    # ax.plot(p_densities, hall_nb, ".-", label="$n_H(p)$")
-    # ax.set_xlabel("Hole doping $p$")
-    # ax.set_ylabel("Hall number $n_H$")
-    # ax.set_ylim([-2, 2])
+    # Fitting data
+    p_fit = np.linspace(-0.025, 0.35, 400)
 
-    # plt.legend()
-    # plt.show()
+    popt_s, pcov_s = curve_fit(fit_lin, p_densities[2:], hall_nb[2:])
+    popt_e, pcov_e = curve_fit(fit_lin, p_densities[:2], hall_nb[:2])
+
+    fitted_start = fit_lin(p_fit, *popt_s)
+    fitted_end = fit_lin(p_fit, *popt_e)
+
+    # Plots
+    ax.plot(p_fit, fitted_start, ".", color="#5fc75d", markersize=0.5,
+            label="$y_1(x) = {:.2f}x + {:.2f}$ ".format(*popt_s))
+
+    ax.plot(p_fit, fitted_end, ".", color="#36868f", markersize=0.5,
+            label="$y_2(x) = {:.2f}x + {:.2f}$".format(*popt_e))
+
+    ax.plot(p_fit, fitted_start + 1/2, ".", color="#203671", markersize=0.5,
+            label="$y_3(x) = y_1(x) + 1/2$".format(*popt_s))
+
+    ax.plot(p_densities, hall_nb, ".-", color="#0f052d", label="$n_H(p)$")
+
+    # Annotations
+    ax.annotate(text='', xy=(p_fit[50], fitted_start[50]),
+                xytext=(p_fit[50], fitted_start[50] + 1/2),
+                arrowprops=dict(arrowstyle='<->'))
+
+    ax.annotate(text='', xy=(p_fit[350], fitted_start[350]),
+                xytext=(p_fit[350], fitted_start[350] + 1/2),
+                arrowprops=dict(arrowstyle='<->'))
+
+    ax.annotate(text='$1/2$', xy=(p_fit[55], fitted_start[55] + 0.25))
+    ax.annotate(text='$1/2$', xy=(p_fit[355], fitted_start[355] + 0.25))
+    ax.annotate(text="$y_1(x)$", xy=(p_fit[-4], fitted_start[-4] + 0.05))
+    ax.annotate(text="$y_2(x)$", xy=(p_fit[-4], fitted_end[-4] + 0.05))
+    ax.annotate(text="$y_3(x)$", xy=(p_fit[-4], fitted_start[-4] + 0.55))
+
+    # Labels & legend
+    ax.set_xlabel("$p$")
+    ax.set_ylabel("$n_H$")
+    ax.set_ylim([0, 2])
+    ax.set_xlim([p_densities[4] - 0.05, p_densities[0] + 0.05])
+
+    plt.legend()
+    plt.show()

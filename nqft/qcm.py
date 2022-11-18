@@ -63,9 +63,9 @@ class QcmModel:
     """
 
     def __init__(self, shape: tuple[int], filling: int, interaction: float,
-                 hoppings: tuple[float], broadening: float, mu: float,
-                 resolution: int, tiling_shift: bool, show_spectrum=False,
-                 overwrite=False) -> None:
+                 hoppings: tuple[float], broadening: float, w: float,
+                 mu: float, resolution: int, tiling_shift: bool,
+                 show_spectrum=False, overwrite=False) -> None:
         """Docs
         """
         # Cluster geometry related attributes
@@ -158,6 +158,7 @@ class QcmModel:
 
         # 'pyqcm' Parameters
         self.u = interaction
+        self.w = w
         self.mu = mu
         self.t, self.tp, self.tpp = hoppings
         self.eta = broadening
@@ -165,7 +166,7 @@ class QcmModel:
 
         # Computing spectral weight
         spectral = mdc(
-            freq=0.0,
+            freq=w,
             nk=resolution,
             eta=broadening,
             sym='RXY',
@@ -247,7 +248,7 @@ class QcmModel:
         k_x_p, k_y_p = np.meshgrid(momentums, momentums)
 
         # Get spectral functions paths
-        peter_array = 1 / pi * read_fermi_arc()[peter_key]
+        peter_array = read_fermi_arc()[peter_key]
 
         # Fig title
         title = "{}/{} fill, $U=${}, $t=$[{}, {}, {}], $\eta=${}".format(
@@ -371,7 +372,7 @@ def get_hall_coeff(spectral_weight: np.ndarray, hoppings: tuple[float],
     n_h: float
         Hall coefficient as a float.
     """
-    # Computing model's energy derivatives
+    # Model's energy derivatives
     t, tp, tpp = hoppings
     normalize = 1 / spectral_weight.shape[0]**2
     momentum = np.linspace(-pi, pi, spectral_weight.shape[0])
@@ -398,18 +399,18 @@ def get_hall_coeff(spectral_weight: np.ndarray, hoppings: tuple[float],
     # Mixed derivative
     ddE_dxdy = 2 * tp * (cos(k_x + k_y) - cos(k_x - k_y))
 
-    # Computing conductivities (ii)
+    # Conductivities (ii)
     coeff_ii = (-e)**2 * pi
     sigma_xx = 2 * coeff_ii * (dE_dx**2 * spectral_weight**2).sum()
     sigma_yy = 2 * coeff_ii * (dE_dy**2 * spectral_weight**2).sum()
 
-    # Computing conductivity (ij)
+    # Conductivity (ij)
     coeff_ij = (-e)**3 * pi**2 / 3
     xy_1 = -2 * dE_dx * dE_dy * ddE_dxdy
     xy_2 = (dE_dx**2 * ddE_dyy) + (dE_dy**2 * ddE_dxx)
     sigma_xy = 2 * coeff_ij * ((xy_1 + xy_2) * spectral_weight**3).sum()
 
-    # Computing Hall coefficient
+    # Hall coefficient
     n_h = normalize * sigma_xx * sigma_yy / (e * sigma_xy)
 
     if file and x_coord:
@@ -423,7 +424,7 @@ def get_hall_coeff(spectral_weight: np.ndarray, hoppings: tuple[float],
 
 
 if __name__ == "__main__":
-    u = 0.01
+    u = 2.0
     mu = float(sys.argv[1])
     fill = int(sys.argv[2])
     hops = (1.0, -0.3, 0.2)
@@ -434,6 +435,7 @@ if __name__ == "__main__":
         interaction=u,
         hoppings=hops,
         broadening=0.1,
+        w=0.0,
         mu=mu,
         resolution=400,
         tiling_shift=True,
@@ -442,7 +444,7 @@ if __name__ == "__main__":
     )
 
     # Plots
-    # lattice.plot_spectrums(peter_key="N36")
+    # lattice.plot_spectrums(peter_key="N24", type='pcolormesh')
 
     # Averages
     # cluster_avgs = lattice.get_cluster_averages(operators=['mu'])
@@ -456,5 +458,5 @@ if __name__ == "__main__":
         lattice.spectrum,
         hops,
         x_coord=d_latt,
-        file="./nqft/Data/n_h_3x4_n12_U001_eta01.txt"
+        file=f"./nqft/Data/hall_3x4/n_h_3x4_n{fill}_U2_eta01.txt"
     )
