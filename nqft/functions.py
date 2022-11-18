@@ -1,6 +1,8 @@
 """This module contains global functions used in the
-expression and operation on Hubbard hamiltonian and
-other Fock space operations.
+expression and operation on Hubbard hamiltonian.
+
+It is also used more globally to perform operations on data files
+containing spectral function.
 """
 
 import numpy as np
