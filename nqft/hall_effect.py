@@ -381,11 +381,16 @@ if __name__ == "__main__":
     N = Model(
         hoppings=(1.0, -0.3, 0.2),
         broadening=0.1,
+        mus=(-4, 4, 0.01),
         use_peters=False,
-        use_filter=True
+        use_filter=False
     )
 
-    N.plot_spectral_weight(mu=-0.4, key="N32")
+    doping = 1 - N.get_density()
+    n_h_f = N.get_hall_nb()
+    for p, n_h in zip(doping, n_h_f):
+        with open("./nqft/Data/data_filter/normal.txt", "w") as file:
+            file.write(f"{p} {n_h}\n")
 
     # # Plot Hall number
     # fig, ax = plt.subplots()
