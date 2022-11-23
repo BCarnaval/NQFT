@@ -8,7 +8,6 @@ from rich import print
 from functools import wraps
 import matplotlib.pyplot as plt
 from scipy.constants import pi, e
-from scipy.optimize import curve_fit
 from numpy import arange, meshgrid, sin, cos, exp, linspace
 
 from nqft.functions import read_fermi_arc, find_nearest, make_cmap
