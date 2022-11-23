@@ -26,9 +26,6 @@
 - [Requirements](#requirements)
   - [Poetry (optionnal)](#poetry-optionnal)
   - [pyqcm](#pyqcm)
-- [Introduction](#introduction)
-  - [Fock space](#fock-space)
-  - [Hubbard model](#hubbard-model)
 
 ## Requirements
 
@@ -57,11 +54,3 @@ and [Poetry](https://python-poetry.org/) will automatically create a Python virt
 > - <cite> David Sénéchal </cite>
 
 This library is the numeric and algorithmic core of this repository. It has been written by the unswerving hands of [David Sénéchal](https://www.physique.usherbrooke.ca/pages/senechal), teacher at Université de Sherbrooke since 1992.
-
-## Introduction
-
-### Fock Space
-
-### Hubbard model
-
-### Etc.
