@@ -1,7 +1,7 @@
 <h1 align="center">NQFT (Numerical Quantum Field Theory)</h1>
 
 <div align="center">
-  <img width="640" height="320" src="./figs/3x4_10n_U8.png">
+  <img width="640" height="320" src="./figs/three_figs.png">
   <br />
   <figcaption>Fig.1 - Spectral function in the Brillouin zone (2D) for 3x4 clusters.</figcaption>
 </div>
