@@ -26,8 +26,11 @@ set style function lines
 set xzeroaxis lt 1 lw 1 lc "#000000"
 set yzeroaxis lt 1 lw 1 lc "#000000"
 
-plot './nqft/Data/data_filter/filtered.txt' u 1:2 w lp ls 3 t 'Diagonal filter', \
-     './nqft/Data/data_filter/normal.txt' u 1:2 w lp ls 6 t 'No filter'
+plot './nqft/Data/data_filter/filtered.txt' u 1:2 w lp lt 1 pt 6 ps 1 lw 2 lc "#f0e2db" notitle, \
+     './nqft/Data/data_filter/normal.txt' u 1:2 w lp lt 1 pt 6 ps 1 lw 2 lc "#efdcde" notitle, \
+     './nqft/Data/data_filter/filtered_2.txt' u 1:2 w lp ls 3 t 'Filtered', \
+     './nqft/Data/data_filter/normal_2.txt' u 1:2 w lp ls 4 t 'Not filtered'
+
 
 unset output
 

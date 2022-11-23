@@ -5,14 +5,13 @@ spin-density wave.
 import time
 import numpy as np
 from rich import print
-from matplotlib import cm
 from functools import wraps
 import matplotlib.pyplot as plt
 from scipy.constants import pi, e
 from scipy.optimize import curve_fit
 from numpy import arange, meshgrid, sin, cos, exp, linspace
 
-from nqft.functions import read_fermi_arc, find_nearest
+from nqft.functions import read_fermi_arc, find_nearest, make_cmap
 
 
 def timeit(func):
@@ -34,7 +33,7 @@ def get_energies(hops: tuple, kx: np.ndarray, ky: np.ndarray,
 
     Parameters
     ----------
-    hop_amps: tuple, default=None
+    hops: tuple, default=None
         Hopping amplitudes coefficients.
 
     kx: np.ndarray, shape=(N, N), default=None
@@ -43,7 +42,7 @@ def get_energies(hops: tuple, kx: np.ndarray, ky: np.ndarray,
     ky: np.ndarray, shape=(N, N), default=None
         ky space as a 2D array.
 
-    mu: np.array, size=M, default=None
+    mus: np.array, size=M, default=None
         Chemical potential values array.
 
     Returns
@@ -93,7 +92,7 @@ def get_energies(hops: tuple, kx: np.ndarray, ky: np.ndarray,
 
 @timeit
 def get_spectral_weight(omega: float, eta: float, E: np.ndarray,
-                        filter=False) -> np.ndarray:
+                        filter=False) -> tuple[np.ndarray]:
     """Ouputs the spectral weight as a 3D numpy array.
 
     Parameters
@@ -108,17 +107,25 @@ def get_spectral_weight(omega: float, eta: float, E: np.ndarray,
         Eigenenergies of the system as a 3D numpy array.
 
     filter: bool, default=False
-        Determines if we use diagonal filter over spectral weights.
+        Determines if we use diamond filter over spectral weights.
 
     Returns
     -------
-    A: np.ndarray, shape=(M, N, N)
-        Spectral weight.
+    A, diag_line: tuple[np.ndarray], size=2
+        Spectral weight and diamond line array to plot over.
     """
     dim = E.shape[1]
     diag_filter = np.ones(shape=(dim, dim))
+    diag_line = np.ones(shape=(dim, dim))
+    buffer = np.linspace(-pi, pi, dim)
+    for i in range(dim):
+        for j in range(dim):
+            if round(abs(buffer[i]) + abs(buffer[j]), 2) == round(pi, 2):
+                diag_line[i, j] = 1.0
+            else:
+                diag_line[i, j] = 0.0
+
     if filter:
-        buffer = np.linspace(-pi, pi, dim)
         for i in range(dim):
             for j in range(dim):
                 if abs(buffer[i]) + abs(buffer[j]) <= pi:
@@ -130,7 +137,7 @@ def get_spectral_weight(omega: float, eta: float, E: np.ndarray,
 
     A = -1 / pi * np.array([1 / (omega + eta * 1j - e) for e in E])
 
-    return diag_filter * A.imag
+    return diag_filter * A.imag, diag_line
 
 
 class Model:
@@ -156,11 +163,16 @@ class Model:
         Resolution of phase space (k_x, k_y).
 
     use_peters: bool, default=False
-        Determines if model's based on Peter R. spectral functions (fermi arcs)
+        Determines if model's based on Peter R. spectral functions
+        (fermi arcs).
+
+    use_filter: bool, default=False
+        Determines if spectral weights will be filtered using diamond shape
+        filter to create artificial Fermi arcs.
     """
 
     def __init__(self, hoppings: tuple[float], broadening: float, omega=0.0,
-                 mus=(-4, 4, 0.02), resolution=400, use_peters=False,
+                 mus=(-4, 4, 0.02), resolution=600, use_peters=False,
                  use_filter=False) -> None:
         """Docs
         """
@@ -177,7 +189,7 @@ class Model:
             self.k_x, self.k_y = meshgrid(k_s, k_s)
 
             self.E, self.dEs = get_energies(
-                    hops=hoppings, kx=self.k_x, ky=self.k_y, mus=self.mus)
+                hops=hoppings, kx=self.k_x, ky=self.k_y, mus=self.mus)
 
             self.A = np.array([array for array in read_fermi_arc().values()])
 
@@ -191,10 +203,10 @@ class Model:
             self.k_x, self.k_y = meshgrid(k_s, k_s)
 
             self.E, self.dEs = get_energies(
-                    hops=hoppings, kx=self.k_x, ky=self.k_y, mus=self.mus)
+                hops=hoppings, kx=self.k_x, ky=self.k_y, mus=self.mus)
 
-            self.A = get_spectral_weight(
-                    omega=omega, eta=broadening, E=self.E, filter=use_filter)
+            self.A, self.diamond = get_spectral_weight(
+                omega=omega, eta=broadening, E=self.E, filter=use_filter)
 
         return
 
@@ -207,9 +219,10 @@ class Model:
             2D graph of spectral weight.
         """
         # Figure settings
-        fig, axes = plt.subplots(ncols=2, tight_layout=True, figsize=(9, 4))
+        fig, axes = plt.subplots(ncols=3, tight_layout=True, figsize=(10, 3))
         axes[0].set(adjustable='box', aspect='equal')
         axes[1].set(adjustable='box', aspect='equal')
+        axes[2].set(adjustable='box', aspect='equal')
 
         # Spectral weight for a given mu
         idx = find_nearest(self.mus, mu)
@@ -217,15 +230,17 @@ class Model:
 
         # Fig title
         title = "$\\mu = {:.2f}$".format(mu)
-        axes[0].set_title(title)
+        # axes[0].set_title("$U=0.0$")
 
         # Plot spectral weight
+
+        axes[0].contour(self.k_x, self.k_y, self.diamond, linewidths=0.6)
         spectral = axes[0].contourf(
             self.k_x,
             self.k_y,
             spectral_mu,
-            cmap=cm.Purples,
-            extend='max'
+            cmap=make_cmap(['#FFFFFF', '#ae6a47']),
+            extend='both',
         )
         fig.colorbar(spectral)
 
@@ -234,22 +249,34 @@ class Model:
         k_x, k_y = meshgrid(linspace(-pi, pi, 200), linspace(-pi, pi, 200))
 
         # Condition to plot Peter's data over colormesh (with some alpha)
-        axes[1].set_title(peters_title)
+        # axes[1].set_title("$U=8.0$")
 
         # Plot one of Peter's spectral weight
+        axes[1].contour(self.k_x, self.k_y, self.diamond, linewidths=0.6)
         spectral_peter = axes[1].contourf(
             k_x,
             k_y,
             peters_spectrum,
-            cmap=cm.Greens,
-            extend='max'
+            cmap=make_cmap(['#FFFFFF', '#8b4049']),
+            extend='both'
         )
-        axes[1].contourf(
+        fig.colorbar(spectral_peter)
+
+        axes[2].contour(self.k_x, self.k_y, self.diamond, linewidths=0.6)
+        spectral = axes[2].contourf(
             self.k_x,
             self.k_y,
             spectral_mu,
-            cmap=cm.Purples,
-            alpha=0.6
+            cmap=make_cmap(['#FFFFFF', '#ae6a47']),
+            extend='both',
+        )
+        spectral_peter = axes[2].contourf(
+            k_x,
+            k_y,
+            peters_spectrum,
+            cmap=make_cmap(['#FFFFFF', '#543344']),
+            alpha=0.6,
+            extend='both'
         )
         fig.colorbar(spectral_peter)
 
@@ -259,7 +286,7 @@ class Model:
 
         # Axes and ticks
         axes[0].set_ylabel("$k_y$")
-        for idx in range(2):
+        for idx in range(3):
             axes[idx].set_xlabel("$k_x$")
             axes[idx].set_xticks(ticks=[min, 0, max], labels=axes_labels)
             axes[idx].set_yticks(ticks=[min, 0, max], labels=axes_labels)
@@ -352,8 +379,8 @@ class Model:
 
         if self.use_peters:
             doping = 1 - np.array(
-                    [0.66666666666, 0.77777777777, 0.83333333333,
-                     0.88888888888, 1.0]
+                [0.66666666666, 0.77777777777, 0.83333333333,
+                 0.88888888888, 1.0]
             )
             ax.set_ylim([0, 2])
 
@@ -381,17 +408,85 @@ if __name__ == "__main__":
     N = Model(
         hoppings=(1.0, -0.3, 0.2),
         broadening=0.1,
-        mus=(-4, 4, 0.01),
+        mus=(-4, 4, 0.05),
         use_peters=False,
-        use_filter=False
+        use_filter=True
     )
 
-    doping = 1 - N.get_density()
-    n_h_f = N.get_hall_nb()
-    for p, n_h in zip(doping, n_h_f):
-        with open("./nqft/Data/data_filter/normal.txt", "w") as file:
-            file.write(f"{p} {n_h}\n")
+    # N.plot_spectral_weight(mu=-0.4, key="N32")
+    # doping = 1 - N.get_density()
+    # n_h = N.get_hall_nb()
+    #
+    # with open("./nqft/Data/n_h_1.txt", "a") as file:
+    #     for n, p in zip(n_h, doping):
+    #         file.write(f"{p} {n}\n")
+    # mu_idx = find_nearest(N.mus, -0.4)
+    # N.plot_spectral_weight(mu=N.mus[mu_idx], key="N32")
 
+    # fig, axes = plt.subplots(ncols=3, tight_layout=True, figsize=(10, 3))
+    # axes[0].set(adjustable='box', aspect='equal')
+    # axes[1].set(adjustable='box', aspect='equal')
+    # axes[2].set(adjustable='box', aspect='equal')
+    #
+    # custom_ramp_1 = make_cmap(['#FFFFFF', '#ae6a47'])
+    # custom_ramp_2 = make_cmap(['#FFFFFF', '#8b4049'])
+    # custom_ramp_3 = make_cmap(['#FFFFFF', '#543344'])
+    #
+    # first, second, third = np.load("./first_plot.npy"), np.load("./second_plot.npy"), np.load("./third_plot.npy")
+    # # Plot spectral weight
+    # spectral_1 = axes[0].contourf(
+    #     N.k_x,
+    #     N.k_y,
+    #     first,
+    #     cmap=custom_ramp_1,
+    #     extend='both'
+    # )
+    # fig.colorbar(spectral_1)
+    #
+    # # Plot spectral weight
+    # spectral_2 = axes[1].contourf(
+    #     N.k_x,
+    #     N.k_y,
+    #     second,
+    #     cmap=custom_ramp_2,
+    #     extend='both'
+    # )
+    # fig.colorbar(spectral_2)
+    #
+    # # Plot spectral weight
+    # spectral_3 = axes[2].contourf(
+    #     N.k_x,
+    #     N.k_y,
+    #     third,
+    #     cmap=custom_ramp_3,
+    #     extend='both'
+    # )
+    # fig.colorbar(spectral_3)
+    #
+    # min, max = N.k_x[0, 0], N.k_x[-1, -1]
+    # axes_labels = ["$-\\pi$", "$0$", "$\\pi$"]
+    #
+    # axes[0].set_title("$(t', t'') = (0.0, 0.0)t$")
+    # axes[1].set_title("$(t', t'') = (-0.3, 0.0)t$")
+    # axes[2].set_title("$(t', t'') = (-0.3, 0.2)t$")
+    #
+    # # Axes and ticks
+    # axes[0].set_ylabel("$k_y$")
+    # for idx in range(3):
+    #     axes[idx].set_xlabel("$k_x$")
+    #     axes[idx].set_xticks(ticks=[min, 0, max], labels=axes_labels)
+    #     axes[idx].set_yticks(ticks=[min, 0, max], labels=axes_labels)
+    #
+    # plt.show()
+
+    # density = N.get_density()
+    # doping = 1 - density
+    #
+    # n_h_f = N.get_hall_nb()
+    # for p, n_h in zip(doping, n_h_f):
+    #     with open("./nqft/Data/data_filter/normal_indexed.txt", "a") as file:
+    #         file.write(f"{p} {n_h}\n")
+    #
     # # Plot Hall number
     # fig, ax = plt.subplots()
     # hall_nb = N.get_hall_nb()

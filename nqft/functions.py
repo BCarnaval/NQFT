@@ -9,8 +9,10 @@ import numpy as np
 import pandas as pd
 from rich import print
 from qutip import Qobj
+from colour import Color
 from scipy.constants import pi
 import matplotlib.pyplot as plt
+from matplotlib.colors import LinearSegmentedColormap
 
 
 def scalar(m: Qobj, n=None) -> float:
@@ -201,6 +203,14 @@ def add_column(file: str, column: np.array, idx: int) -> None:
         file_to_df.to_csv(file, sep=' ', header=False, index=False)
 
     return
+
+
+def make_cmap(ramp_colors: list) -> LinearSegmentedColormap:
+    """Docs
+    """
+    color_ramp = LinearSegmentedColormap.from_list(
+        'my_list', [Color(c1).rgb for c1 in ramp_colors])
+    return color_ramp
 
 
 if __name__ == "__main__":
