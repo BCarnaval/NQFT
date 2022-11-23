@@ -230,7 +230,7 @@ class Model:
 
         # Fig title
         title = "$\\mu = {:.2f}$".format(mu)
-        # axes[0].set_title("$U=0.0$")
+        axes[0].set_title(title)
 
         # Plot spectral weight
 
@@ -248,9 +248,7 @@ class Model:
         peters_title = "Peter's model: {}".format(key)
         k_x, k_y = meshgrid(linspace(-pi, pi, 200), linspace(-pi, pi, 200))
 
-        # Condition to plot Peter's data over colormesh (with some alpha)
-        # axes[1].set_title("$U=8.0$")
-
+        axes[1].set_title(peters_title)
         # Plot one of Peter's spectral weight
         axes[1].contour(self.k_x, self.k_y, self.diamond, linewidths=0.6)
         spectral_peter = axes[1].contourf(
@@ -413,128 +411,4 @@ if __name__ == "__main__":
         use_filter=True
     )
 
-    # N.plot_spectral_weight(mu=-0.4, key="N32")
-    # doping = 1 - N.get_density()
-    # n_h = N.get_hall_nb()
-    #
-    # with open("./nqft/Data/n_h_1.txt", "a") as file:
-    #     for n, p in zip(n_h, doping):
-    #         file.write(f"{p} {n}\n")
-    # mu_idx = find_nearest(N.mus, -0.4)
-    # N.plot_spectral_weight(mu=N.mus[mu_idx], key="N32")
-
-    # fig, axes = plt.subplots(ncols=3, tight_layout=True, figsize=(10, 3))
-    # axes[0].set(adjustable='box', aspect='equal')
-    # axes[1].set(adjustable='box', aspect='equal')
-    # axes[2].set(adjustable='box', aspect='equal')
-    #
-    # custom_ramp_1 = make_cmap(['#FFFFFF', '#ae6a47'])
-    # custom_ramp_2 = make_cmap(['#FFFFFF', '#8b4049'])
-    # custom_ramp_3 = make_cmap(['#FFFFFF', '#543344'])
-    #
-    # first, second, third = np.load("./first_plot.npy"), np.load("./second_plot.npy"), np.load("./third_plot.npy")
-    # # Plot spectral weight
-    # spectral_1 = axes[0].contourf(
-    #     N.k_x,
-    #     N.k_y,
-    #     first,
-    #     cmap=custom_ramp_1,
-    #     extend='both'
-    # )
-    # fig.colorbar(spectral_1)
-    #
-    # # Plot spectral weight
-    # spectral_2 = axes[1].contourf(
-    #     N.k_x,
-    #     N.k_y,
-    #     second,
-    #     cmap=custom_ramp_2,
-    #     extend='both'
-    # )
-    # fig.colorbar(spectral_2)
-    #
-    # # Plot spectral weight
-    # spectral_3 = axes[2].contourf(
-    #     N.k_x,
-    #     N.k_y,
-    #     third,
-    #     cmap=custom_ramp_3,
-    #     extend='both'
-    # )
-    # fig.colorbar(spectral_3)
-    #
-    # min, max = N.k_x[0, 0], N.k_x[-1, -1]
-    # axes_labels = ["$-\\pi$", "$0$", "$\\pi$"]
-    #
-    # axes[0].set_title("$(t', t'') = (0.0, 0.0)t$")
-    # axes[1].set_title("$(t', t'') = (-0.3, 0.0)t$")
-    # axes[2].set_title("$(t', t'') = (-0.3, 0.2)t$")
-    #
-    # # Axes and ticks
-    # axes[0].set_ylabel("$k_y$")
-    # for idx in range(3):
-    #     axes[idx].set_xlabel("$k_x$")
-    #     axes[idx].set_xticks(ticks=[min, 0, max], labels=axes_labels)
-    #     axes[idx].set_yticks(ticks=[min, 0, max], labels=axes_labels)
-    #
-    # plt.show()
-
-    # density = N.get_density()
-    # doping = 1 - density
-    #
-    # n_h_f = N.get_hall_nb()
-    # for p, n_h in zip(doping, n_h_f):
-    #     with open("./nqft/Data/data_filter/normal_indexed.txt", "a") as file:
-    #         file.write(f"{p} {n_h}\n")
-    #
-    # # Plot Hall number
-    # fig, ax = plt.subplots()
-    # hall_nb = N.get_hall_nb()
-    # # p_densities = 1 - N.get_density()
-    # p_densities = 1 - np.array([0.66666666666, 0.77777777777, 0.83333333333,
-    #                             0.88888888888, 1.0])
-    #
-    # # Fitting data
-    # p_fit = np.linspace(-0.025, 0.35, 400)
-    #
-    # popt_s, pcov_s = curve_fit(fit_lin, p_densities[2:], hall_nb[2:])
-    # popt_e, pcov_e = curve_fit(fit_lin, p_densities[:2], hall_nb[:2])
-    #
-    # fitted_start = fit_lin(p_fit, *popt_s)
-    # fitted_end = fit_lin(p_fit, *popt_e)
-    #
-    # # Plots
-    # ax.plot(p_fit, fitted_start, ".", color="#5fc75d", markersize=0.5,
-    #         label="$y_1(x) = {:.2f}x + {:.2f}$ ".format(*popt_s))
-    #
-    # ax.plot(p_fit, fitted_end, ".", color="#36868f", markersize=0.5,
-    #         label="$y_2(x) = {:.2f}x + {:.2f}$".format(*popt_e))
-    #
-    # ax.plot(p_fit, fitted_start + 1/2, ".", color="#203671", markersize=0.5,
-    #         label="$y_3(x) = y_1(x) + 1/2$".format(*popt_s))
-    #
-    # ax.plot(p_densities, hall_nb, ".-", color="#0f052d", label="$n_H(p)$")
-    #
-    # # Annotations
-    # ax.annotate(text='', xy=(p_fit[50], fitted_start[50]),
-    #             xytext=(p_fit[50], fitted_start[50] + 1/2),
-    #             arrowprops=dict(arrowstyle='<->'))
-    #
-    # ax.annotate(text='', xy=(p_fit[350], fitted_start[350]),
-    #             xytext=(p_fit[350], fitted_start[350] + 1/2),
-    #             arrowprops=dict(arrowstyle='<->'))
-    #
-    # ax.annotate(text='$1/2$', xy=(p_fit[55], fitted_start[55] + 0.25))
-    # ax.annotate(text='$1/2$', xy=(p_fit[355], fitted_start[355] + 0.25))
-    # ax.annotate(text="$y_1(x)$", xy=(p_fit[-4], fitted_start[-4] + 0.05))
-    # ax.annotate(text="$y_2(x)$", xy=(p_fit[-4], fitted_end[-4] + 0.05))
-    # ax.annotate(text="$y_3(x)$", xy=(p_fit[-4], fitted_start[-4] + 0.55))
-    #
-    # # Labels & legend
-    # ax.set_xlabel("$p$")
-    # ax.set_ylabel("$n_H$")
-    # ax.set_ylim([0, 2])
-    # ax.set_xlim([p_densities[4] - 0.05, p_densities[0] + 0.05])
-    #
-    # plt.legend()
-    # plt.show()
+    N.plot_spectral_weight(mu=-0.4, key="N32")

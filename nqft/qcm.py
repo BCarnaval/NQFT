@@ -27,7 +27,7 @@ from pyqcm import (
 )
 from pyqcm.spectral import mdc
 
-from nqft.functions import read_fermi_arc, plot_hall
+from nqft.functions import read_fermi_arc
 
 
 def build_matrix(shape: tuple) -> list:
