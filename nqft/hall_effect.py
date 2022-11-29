@@ -395,12 +395,6 @@ class Model:
         return
 
 
-def fit_lin(x: np.array, a: float, b: float) -> np.array:
-    """Linear function.
-    """
-    return a * x + b
-
-
 if __name__ == "__main__":
     N = Model(
         hoppings=(1.0, -0.3, 0.2),
