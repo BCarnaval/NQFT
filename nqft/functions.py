@@ -58,7 +58,7 @@ def delta(j: int, k: int) -> float:
     return 1.0 if j == k else 0.0
 
 
-def read_fermi_arc(path="./nqft/Data/fermi_arc_data/") -> dict:
+def read_fermi_arc(path="./nqft/Data/fermi_arc_data", size=36) -> dict:
     """Reads Peter's data on spectral weight at Fermi
     level for a given number of sites.
 
@@ -67,20 +67,40 @@ def read_fermi_arc(path="./nqft/Data/fermi_arc_data/") -> dict:
     path: str, default="./nqft/Data/fermi_arc_data/"
         Path to data directory.
 
+    size: int, default=36
+        Number of sites of studied model.
+
     Returns
     -------
     arcs: dict, size=6
         A dict containing all spectral functions.
     """
-    files = [
-        f"{path}Akw_N24.npy",
-        f"{path}Akw_N28.npy",
-        f"{path}Akw_N30.npy",
-        f"{path}Akw_N32.npy",
-        f"{path}Akw_N36.npy",
-    ]
+    if size == 36:
+        size_path = "_N36/"
+        files = [
+            f"{path}{size_path}Akw_N24.npy",
+            f"{path}{size_path}Akw_N26.npy",
+            f"{path}{size_path}Akw_N28.npy",
+            f"{path}{size_path}Akw_N30.npy",
+            f"{path}{size_path}Akw_N32.npy",
+            f"{path}{size_path}Akw_N34.npy",
+            f"{path}{size_path}Akw_N36.npy",
+        ]
 
-    extensions = ["N24", "N28", "N30", "N32", "N36"]
+        extensions = ["N24", "N26", "N28", "N30", "N32", "N34", "N36"]
+
+    elif size == 64:
+        size_path = "_N64/"
+        files = [
+            f"{path}{size_path}Akw_N48.npy",
+            f"{path}{size_path}Akw_N52.npy",
+            f"{path}{size_path}Akw_N56.npy",
+            f"{path}{size_path}Akw_N60.npy",
+            f"{path}{size_path}Akw_N64.npy",
+        ]
+
+        extensions = ["N48", "N52", "N56", "N60", "N64"]
+
     arcs = {
         ext: 1 / pi * np.load(file) for ext, file in zip(extensions, files)
     }
@@ -88,7 +108,7 @@ def read_fermi_arc(path="./nqft/Data/fermi_arc_data/") -> dict:
     return arcs
 
 
-def flatten_fermi_arc(save_path="./nqft/Data/fermi_arc_data_1D/",
+def flatten_fermi_arc(save_path="./nqft/Data/fermi_arc_data_1D", size=36,
                       type="text") -> None:
     """Saves Peter's Fermi arc numpy 2D arrays files as 1D
     arrays numpy files so they can be read in Rust/C.
@@ -106,7 +126,12 @@ def flatten_fermi_arc(save_path="./nqft/Data/fermi_arc_data_1D/",
     -------
     None
     """
-    arcs_files = read_fermi_arc()
+    if size == 36:
+        save_path += "_N36/"
+    elif size == 64:
+        save_path += "_N64/"
+
+    arcs_files = read_fermi_arc(size=size)
     for (ext, array) in arcs_files.items():
         flat_array = np.ravel(array)
         if type == "text":
@@ -217,3 +242,4 @@ if __name__ == "__main__":
     file = "./nqft/Data/..."
     column = np.arange(-4, 4, 0.05)
     add_column(file=file, column=column, idx=0)
+    # flatten_fermi_arc(size=64)

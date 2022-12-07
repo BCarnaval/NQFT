@@ -4,51 +4,34 @@ import numpy as np
 def build_h(shape: tuple[int], eps: np.array, hops: np.array) -> np.ndarray:
     """Docs
     """
-    epsilons = np.diag(eps)
-    sites, it = shape[0] * shape[1], 0
+    sites = shape[0] * shape[1]
     h = np.zeros(shape=(sites, sites))
-    i, j = np.indices(dimensions=shape, sparse=True)
-    for idx_x in range(shape[0]):
-        for idx_y in range(shape[1]):
-            h[it] = np.sqrt((i - idx_x)**2 + (j - idx_y)**2).ravel()
-            it += 1
+    cluster = np.arange(sites).reshape(shape)
 
-    return h + epsilons
+    for coord_1, i in np.ndenumerate(cluster):
+        x1, y1 = coord_1
+        for coord_2, j in np.ndenumerate(cluster):
+            x2, y2 = coord_2
+            dist = ((x1 - x2)**2 + (y1 - y2)**2)**(1/2)
+            if dist > 2.0:
+                h[i, j] = 0.0
+            elif dist == 2.0:
+                h[i, j] = hops[2]
+            elif dist == (2.0)**(1/2):
+                h[i, j] = hops[1]
+            elif dist == 1.0:
+                h[i, j] = hops[0]
+
+    return h
 
 
 if __name__ == "__main__":
-    shape = (2, 2)
+    # Variables & Parameters
+    shape = (3, 3)
+    sites = shape[0] * shape[1]
     hoppings = np.array([1, 2, 3])
-    epsilons = np.array([5, 5, 5, 5])
+    epsilons = np.array([5 for i in range(sites)])
+
+    # Building Hamiltonian
     H = build_h(shape=shape, eps=epsilons, hops=hoppings)
-
     print(H)
-
-
-"""
-Example 2x2 cluster:
-
-[0 1
- 2 3]
-
-[e1 t t tp
- t e2 tp t
- t tp e3 t
- tp t t e4]
-
-Example 3x3 cluster:
-
-[0 1 2
- 3 4 5
- 6 7 8]
-
-[e 1 3 1 2 2 3 0 0
- 1 e 1 2 1 2 0 3 0
- 3 1 e 2 2 1 0 0 3
- 1 2 2 e 1 3 1 2 1
- 2 1 2 1 e 1 2 1 2
- 2 2 1 3 1 e 2 1 1
- 3 0 0 1 2 2 e 1 3
- 0 3 0 2 1 2 1 e 1
- 0 0 3 2 2 1 3 1 e]
-"""

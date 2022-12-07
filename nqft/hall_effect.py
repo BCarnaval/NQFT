@@ -161,7 +161,7 @@ class Model:
     resolution: int, default=4
         Resolution of phase space (k_x, k_y).
 
-    use_peters: bool, default=False
+    use_peters: int, default=None
         Determines if model's based on Peter R. spectral functions
         (fermi arcs).
 
@@ -171,7 +171,7 @@ class Model:
     """
 
     def __init__(self, hoppings: tuple[float], broadening: float, omega=0.0,
-                 mus=(-4, 4, 0.02), resolution=600, use_peters=False,
+                 mus=(-4, 4, 0.02), resolution=600, use_peters=None,
                  use_filter=False) -> None:
         """Docs
         """
@@ -179,10 +179,16 @@ class Model:
         self.use_peters = use_peters
 
         if use_peters:
-            self.eta = 0.1
             self.norm = 1 / 200**2
             self.hops = (1.0, -0.3, 0.2)
-            self.mus = np.array([-1.3, -1.0, -0.75, -0.4, 0.0])
+
+            if self.use_peters == 36:
+                self.eta = 0.1
+                self.mus = np.array([-1.3, -1.3, -1.0, -0.75, -0.4, -0.4, 0.0])
+
+            elif self.use_peters == 64:
+                self.eta = 0.05
+                self.mus = np.array([-1.3, -0.8, -0.55, -0.1, 0.0])
 
             k_s = linspace(-pi, pi, 200)
             self.k_x, self.k_y = meshgrid(k_s, k_s)
@@ -190,7 +196,9 @@ class Model:
             self.E, self.dEs = get_energies(
                 hops=hoppings, kx=self.k_x, ky=self.k_y, mus=self.mus)
 
-            self.A = np.array([array for array in read_fermi_arc().values()])
+            self.A = np.array(
+                [array for array in read_fermi_arc(size=use_peters).values()]
+            )
 
         else:
             self.hops = hoppings
@@ -209,7 +217,7 @@ class Model:
 
         return
 
-    def plot_spectral_weight(self, mu: float, key=None) -> plt.Figure:
+    def plot_spectral_weight(self, mu: float, size=36, key=None) -> plt.Figure:
         """Ouputs the spectral weight as a 2D numpy array.
 
         Returns
@@ -243,7 +251,7 @@ class Model:
         )
         fig.colorbar(spectral)
 
-        peters_spectrum = read_fermi_arc()[key]
+        peters_spectrum = read_fermi_arc(size=size)[key]
         peters_title = "Peter's model: {}".format(key)
         k_x, k_y = meshgrid(linspace(-pi, pi, 200), linspace(-pi, pi, 200))
 
@@ -375,11 +383,15 @@ class Model:
         _, ax = plt.subplots()
 
         if self.use_peters:
-            doping = 1 - np.array(
-                [0.66666666666, 0.77777777777, 0.83333333333,
-                 0.88888888888, 1.0]
-            )
-            ax.set_ylim([0, 2])
+            if self.use_peters == 36:
+                ax.set_ylim([0, 2])
+                doping = 1 - np.array(
+                    [0.66666666666, 0.72222222222, 0.77777777777, 0.83333333333,
+                     0.88888888888, 0.94444444444, 1.0]
+                )
+            elif self.use_peters == 64:
+                ax.set_ylim([0, 1.5])
+                doping = 1 - np.array([0.75, 0.8125, 0.875, 0.9375, 1.0])
 
         else:
             doping = 1 - self.get_density()
@@ -398,10 +410,14 @@ class Model:
 if __name__ == "__main__":
     N = Model(
         hoppings=(1.0, -0.3, 0.2),
-        broadening=0.1,
+        broadening=0.05,
         mus=(-4, 4, 0.05),
-        use_peters=False,
-        use_filter=True
+        use_peters=None,
+        use_filter=False
     )
 
-    N.plot_spectral_weight(mu=-0.4, key="N32")
+    sigma_xx = N.sigma_ii(variable='x')
+    sigma_yy = N.sigma_ii(variable='y')
+    sigma_xy = N.sigma_ij()
+
+    print(sigma_xx, "\n\n", sigma_yy, "\n\n", sigma_xy)
