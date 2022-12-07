@@ -26,6 +26,7 @@
 
 - [Requirements](#requirements)
   - [Poetry (optionnal)](#poetry-optionnal)
+  - [Project dependencies](#project-dependencies)
   - [pyqcm](#pyqcm)
 
 ## Requirements
@@ -47,6 +48,16 @@ poetry install
 and [Poetry](https://python-poetry.org/) will automatically create a Python virtual environnement including all[^1] the packages needed for the project to be functionnal.
 
 [^1]: Except here for one library named [pyqcm](https://github.com/dsenech/qcm_wed/tree/master). It needs a specific installation because it isn't published on PyPI yet so [Poetry](https://python-poetry.org/) isn't able to access it via global `pip install`.
+
+### Project dependencies
+
+If [Poetry](https://python-poetry.org/) doesn't feel quite good, you can also install all dependencies in your personnal virtual environnement (or on your global Python installation...) with the "old way" using the `requirements.txt` file present in the root of the repository. The command
+
+```shell
+pip install -r requirements.txt
+```
+
+should do the work! However, you must keep in mind that it's harder to stay up to date with the libraries by using this "old way" because you would need to reinstall every library independently then overwrite the `requirements.txt` whereas [Poetry](https://python-poetry.org/) takes care of everything.
 
 ### pyqcm
 
