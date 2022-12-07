@@ -1,4 +1,3 @@
-
 """This module is dedicated to 'pyqcm'
 experimentation.
 """

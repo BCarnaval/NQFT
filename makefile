@@ -7,9 +7,6 @@ GARBAGE={eps,tex,log,aux}
 
 all:
 
-plot:
-	@gnuplot -p $(EX_SRC)plot_nh_p.gp
-
 clean:
 	@$(RM) $(EX_SRC)*.$(GARBAGE)
 	@$(RM) $(EX_SRC)*-inc-*
