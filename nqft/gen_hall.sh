@@ -6,7 +6,6 @@ FILE_PATH=./nqft/qcm.py
 
 main () {
     for i in ${MUS}; do
-        # ntfy send QcmSimulations "Chemical potential: $i..."
         ${PY_PATH} ${FILE_PATH} $i 12
     done
 

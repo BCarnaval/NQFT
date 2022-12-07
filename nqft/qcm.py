@@ -10,8 +10,8 @@ from rich import print
 import importlib as iplib
 from matplotlib import cm
 from numpy import sin, cos
+from scipy.constants import pi
 import matplotlib.pyplot as plt
-from scipy.constants import pi, e
 
 from pyqcm import (
     averages,
@@ -400,18 +400,16 @@ def get_hall_coeff(spectral_weight: np.ndarray, hoppings: tuple[float],
     ddE_dxdy = 2 * tp * (cos(k_x + k_y) - cos(k_x - k_y))
 
     # Conductivities (ii)
-    coeff_ii = (-e)**2 * pi
-    sigma_xx = 2 * coeff_ii * (dE_dx**2 * spectral_weight**2).sum()
-    sigma_yy = 2 * coeff_ii * (dE_dy**2 * spectral_weight**2).sum()
+    sigma_xx = -(dE_dx**2 * spectral_weight**2).sum()
+    sigma_yy = -(dE_dy**2 * spectral_weight**2).sum()
 
     # Conductivity (ij)
-    coeff_ij = (-e)**3 * pi**2 / 3
     xy_1 = -2 * dE_dx * dE_dy * ddE_dxdy
     xy_2 = (dE_dx**2 * ddE_dyy) + (dE_dy**2 * ddE_dxx)
-    sigma_xy = 2 * coeff_ij * ((xy_1 + xy_2) * spectral_weight**3).sum()
+    sigma_xy = -((xy_1 + xy_2) * spectral_weight**3).sum()
 
     # Hall coefficient
-    n_h = normalize * sigma_xx * sigma_yy / (e * sigma_xy)
+    n_h = 6 * normalize * sigma_xx * sigma_yy / sigma_xy
 
     if file and x_coord:
         with open(file, "a") as file:

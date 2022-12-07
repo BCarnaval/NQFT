@@ -6,8 +6,8 @@ import time
 import numpy as np
 from rich import print
 from functools import wraps
+from scipy.constants import pi
 import matplotlib.pyplot as plt
-from scipy.constants import pi, e
 from numpy import arange, meshgrid, sin, cos, exp, linspace
 
 from nqft.functions import read_fermi_arc, find_nearest, make_cmap
@@ -315,7 +315,6 @@ class Model:
         -------
         conductivity: float
         """
-        coeff = (-e)**2 * pi
         if variable == "x":
             dE = self.dEs['dE_dx']
 
@@ -323,7 +322,7 @@ class Model:
             dE = self.dEs['dE_dy']
 
         sigma_ii = dE**2 * self.A**2
-        conductivity = np.array([2 * coeff * sig.sum() for sig in sigma_ii])
+        conductivity = np.array([-sig.sum() for sig in sigma_ii])
 
         return conductivity
 
@@ -336,13 +335,12 @@ class Model:
         -------
         conductivity: float
         """
-        coeff = (-e)**3 * pi**2 / 3
         c1 = -2 * self.dEs['dE_dx'] * self.dEs['dE_dy'] * self.dEs['ddE_dxdy']
         c2 = self.dEs['dE_dx']**2 * self.dEs['ddE_dyy']
         c3 = self.dEs['dE_dy']**2 * self.dEs['ddE_dxx']
 
         sigma_ij = (c1 + c2 + c3) * self.A**3
-        conductivity = np.array([2 * coeff * sig.sum() for sig in sigma_ij])
+        conductivity = np.array([-sig.sum() for sig in sigma_ij])
 
         return conductivity
 
@@ -372,7 +370,7 @@ class Model:
         """
         s_xy = self.sigma_ij()
         s_xx, s_yy = self.sigma_ii("x"), self.sigma_ii("y")
-        n_H = self.norm * s_xx * s_yy / (e * s_xy)
+        n_H = 6 * self.norm * s_xx * s_yy / s_xy
 
         return n_H
 
@@ -386,8 +384,8 @@ class Model:
             if self.use_peters == 36:
                 ax.set_ylim([0, 2])
                 doping = 1 - np.array(
-                    [0.66666666666, 0.72222222222, 0.77777777777, 0.83333333333,
-                     0.88888888888, 0.94444444444, 1.0]
+                    [0.66666666666, 0.72222222222, 0.77777777777,
+                     0.83333333333, 0.88888888888, 0.94444444444, 1.0]
                 )
             elif self.use_peters == 64:
                 ax.set_ylim([0, 1.5])
@@ -416,8 +414,4 @@ if __name__ == "__main__":
         use_filter=False
     )
 
-    sigma_xx = N.sigma_ii(variable='x')
-    sigma_yy = N.sigma_ii(variable='y')
-    sigma_xy = N.sigma_ij()
-
-    print(sigma_xx, "\n\n", sigma_yy, "\n\n", sigma_xy)
+    N.plot_hall()
