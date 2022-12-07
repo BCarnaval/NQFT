@@ -1,7 +1,7 @@
 <h1 align="center">NQFT (Numerical Quantum Field Theory)</h1>
 
 <div align="center">
-  <img width="1240" height="320" src="./figs/article.pdf">
+  <img width="1240" height="320" src="./figs/article-1.png">
   <br />
   <figcaption>Fig.1 - Spectral functions in the Brillouin zone (2D)</figcaption>
 </div>
