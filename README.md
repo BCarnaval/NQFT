@@ -51,7 +51,7 @@ and [Poetry](https://python-poetry.org/) will automatically create a Python virt
 
 ### Project dependencies
 
-If [Poetry](https://python-poetry.org/) doesn't feel quite good, you can also install all dependencies in your personnal virtual environnement (or on your global Python installation...) with the "old way" using the `requirements.txt` file present in the root of the repository. The command
+If [Poetry](https://python-poetry.org/) doesn't feel quite good, you can also install all[^1] dependencies in your personnal virtual environnement (or on your global Python installation...) with the "old way" using the `requirements.txt` file present in the root of the repository. The command
 
 ```shell
 pip install -r requirements.txt
