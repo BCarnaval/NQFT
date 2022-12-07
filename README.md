@@ -1,8 +1,8 @@
 <h1 align="center">NQFT (Numerical Quantum Field Theory)</h1>
 
 <div align="center">
-  <img width="460" height="320" src="./figs/article-1.png">
-  <img width="460" height="320" src="./figs/n_h_filter-1.png">
+  <img width="420" height="300" src="./figs/article-1.png">
+  <img width="420" height="300" src="./figs/n_h_filter-1.png">
   <br />
   <figcaption>Fig.1 - Hall number as a function of hole doping (left) using the non-interacting model. (right) using 'diamond' filter on spectral weight to simulate Fermi arcs.</figcaption>
 </div>
