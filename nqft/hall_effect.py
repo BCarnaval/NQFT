@@ -161,10 +161,14 @@ class Model:
     resolution: int, default=600
         Resolution of phase space (k_x, k_y).
 
-    use_peters: int, default=None
+    use_peters: tuple[int], default=(None, 200)
         Determines if model's based on Peter R. spectral functions. User must
-        choose between (None, 36, 64) where 36, 64 represent the number of
-        sites of studied model.
+        choose between None, 36 and 64 for the first element representing the
+        number of sites and between 200 and 500 for the second element
+        representing the resolution of momentum space.
+
+        (Note: User must let first element as 'None' to use non-interacting
+        spectrums normally.)
 
     use_filter: bool, default=False
         Determines if spectral weights will be filtered using diamond shape
@@ -412,12 +416,12 @@ class Model:
         _, ax = plt.subplots()
 
         if self.use_peters[0]:
+
             if self.use_peters[0] == 36:
                 ax.set_ylim([0, 2])
                 doping = 1 - np.array(
-                    [0.66666666666, 0.72222222222, 0.77777777777,
-                     0.83333333333, 0.88888888888, 0.94444444444, 1.0]
-                )
+                    [0.6666, 0.7222, 0.7777, 0.8333, 0.8888, 0.9444, 1.0])
+
             elif self.use_peters[0] == 64:
                 ax.set_ylim([0, 1.5])
                 doping = 1 - np.array([0.75, 0.8125, 0.875, 0.9375, 1.0])
@@ -441,8 +445,7 @@ if __name__ == "__main__":
         hoppings=(1.0, -0.3, 0.2),
         broadening=0.05,
         mus=(-4, 4, 0.05),
-        use_peters=(None, 200),
-        use_filter=False
+        use_peters=(None, 200)
     )
 
     N.plot_hall()

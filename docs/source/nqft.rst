@@ -28,6 +28,14 @@ nqft.hamiltonian module
    :undoc-members:
    :show-inheritance:
 
+nqft.monte\_carlo module
+------------------------
+
+.. automodule:: nqft.monte_carlo
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 nqft.qcm module
 ---------------
 
