@@ -231,7 +231,18 @@ def add_column(file: str, column: np.array, idx: int) -> None:
 
 
 def make_cmap(ramp_colors: list) -> LinearSegmentedColormap:
-    """Docs
+    """Makes a custom colormap to use in matplotlib 'contourf' or any plot
+    using a colorbar.
+
+    Parameters
+    ----------
+    ramp_colors: list, default=None
+        Hex code(s) of colors to use when making the colormap.
+
+    Returns
+    -------
+    color_ramp: LinearSegmentedColormap
+        Custom colormap
     """
     color_ramp = LinearSegmentedColormap.from_list(
         'my_list', [Color(c1).rgb for c1 in ramp_colors])
@@ -242,4 +253,3 @@ if __name__ == "__main__":
     file = "./nqft/Data/..."
     column = np.arange(-4, 4, 0.05)
     add_column(file=file, column=column, idx=0)
-    # flatten_fermi_arc(size=64)
