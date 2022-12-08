@@ -46,7 +46,7 @@ def get_energies(hops: tuple, kx: np.ndarray, ky: np.ndarray,
 
     Returns
     -------
-    E, dEs: tuple, size=2
+    E, dEs: tuple[np.ndarray, dict], size=2
         Energies and it's derivatives in a tuple.
     """
     # Energy
@@ -55,7 +55,7 @@ def get_energies(hops: tuple, kx: np.ndarray, ky: np.ndarray,
     b = -2 * tp * (cos(kx + ky) + cos(kx - ky))
     c = -2 * tpp * (cos(2 * kx) + cos(2 * ky))
 
-    E = np.array([a + b + c - i for i in mus])
+    E = (a + b + c)[..., None] - mus
 
     dEs = {
         'dE_dx': None,
@@ -134,9 +134,9 @@ def get_spectral_weight(omega: float, eta: float, E: np.ndarray,
     else:
         pass
 
-    A = -1 / pi * np.array([1 / (omega + eta * 1j - e) for e in E])
+    A = -1 / pi * (1 / (omega + eta * 1j - E))
 
-    return diag_filter * A.imag, diag_line
+    return diag_filter[..., None] * A.imag, diag_line
 
 
 class Model:
@@ -198,7 +198,7 @@ class Model:
 
             self.A = np.array(
                 [array for array in read_fermi_arc(size=use_peters).values()]
-            )
+            ).T
 
         else:
             self.hops = hoppings
@@ -233,7 +233,7 @@ class Model:
 
         # Spectral weight for a given mu
         idx = find_nearest(self.mus, mu)
-        spectral_mu = self.A[idx]
+        spectral_mu = self.A[:, :, idx]
 
         # Fig title
         title = "$\\mu = {:.2f}$".format(mu)
@@ -321,8 +321,8 @@ class Model:
         elif variable == "y":
             dE = self.dEs['dE_dy']
 
-        sigma_ii = dE**2 * self.A**2
-        conductivity = np.array([-sig.sum() for sig in sigma_ii])
+        sigma_ii = (dE**2)[..., None] * self.A**2
+        conductivity = -1 * sigma_ii.sum(axis=1).sum(axis=0)
 
         return conductivity
 
@@ -339,8 +339,8 @@ class Model:
         c2 = self.dEs['dE_dx']**2 * self.dEs['ddE_dyy']
         c3 = self.dEs['dE_dy']**2 * self.dEs['ddE_dxx']
 
-        sigma_ij = (c1 + c2 + c3) * self.A**3
-        conductivity = np.array([-sig.sum() for sig in sigma_ij])
+        sigma_ij = (c1 + c2 + c3)[..., None] * self.A**3
+        conductivity = -1 * sigma_ij.sum(axis=1).sum(axis=0)
 
         return conductivity
 
@@ -355,7 +355,7 @@ class Model:
         """
         beta = 100
         fermi_dirac = 2.0 / (1.0 + exp(beta * self.E.astype("float128")))
-        density = np.array([self.norm * func.sum() for func in fermi_dirac])
+        density = self.norm * fermi_dirac.sum(axis=1).sum(axis=0)
 
         return density
 
