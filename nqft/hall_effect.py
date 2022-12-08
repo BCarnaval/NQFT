@@ -26,7 +26,7 @@ def timeit(func):
 
 
 @timeit
-def get_energies(hops: tuple, kx: np.ndarray, ky: np.ndarray,
+def get_energies(hops: tuple[float], kx: np.ndarray, ky: np.ndarray,
                  mus: np.array) -> tuple:
     """Outputs model's energies and it's derivatives.
 
@@ -48,6 +48,50 @@ def get_energies(hops: tuple, kx: np.ndarray, ky: np.ndarray,
     -------
     E, dEs: tuple[np.ndarray, dict], size=2
         Energies and it's derivatives in a tuple.
+
+    Examples
+    --------
+    >>> hops = (1.0, -0.3, 0.2)
+    >>> ks, mus = np.linspace(-np.pi, np.pi, 2), np.linspace(-4, 4, 8)
+    >>> kx, ky = np.meshgrid(ks, ks)
+    >>> get_energies(hops, kx, ky, mus)
+    (
+        array([[[8.4       , 8.4       ],
+            [8.4       , 8.4       ]],
+
+           [[7.25714286, 7.25714286],
+            [7.25714286, 7.25714286]],
+
+           [[6.11428571, 6.11428571],
+            [6.11428571, 6.11428571]],
+
+           [[4.97142857, 4.97142857],
+            [4.97142857, 4.97142857]],
+
+           [[3.82857143, 3.82857143],
+            [3.82857143, 3.82857143]],
+
+           [[2.68571429, 2.68571429],
+            [2.68571429, 2.68571429]],
+
+           [[1.54285714, 1.54285714],
+            [1.54285714, 1.54285714]],
+
+           [[0.4       , 0.4       ],
+            [0.4       , 0.4       ]]]),
+        {
+            'dE_dx': array([[-1.95943488e-16,  1.95943488e-16],
+           [-1.95943488e-16,  1.95943488e-16]]),
+            'ddE_dxx': array([[-1.6, -1.6],
+           [-1.6, -1.6]]),
+            'dE_dy': array([[-1.95943488e-16, -1.95943488e-16],
+           [ 1.95943488e-16,  1.95943488e-16]]),
+            'ddE_dyy': array([[-1.6, -1.6],
+           [-1.6, -1.6]]),
+            'ddE_dxdy': array([[-0., -0.],
+           [-0., -0.]])
+        }
+    )
     """
     # Energy
     t, tp, tpp = hops
@@ -112,6 +156,41 @@ def get_spectral_weight(omega: float, eta: float, E: np.ndarray,
     -------
     A, diag_line: tuple[np.ndarray], size=2
         Spectral weight and diamond line array to plot over.
+
+    Examples
+    --------
+    >>> hops = (1.0, -0.3, 0.2)
+    >>> ks, mus = np.linspace(-np.pi, np.pi, 2), np.linspace(-4, 4, 8)
+    >>> kx, ky = np.meshgrid(ks, ks)
+    >>> E, dEs = get_energies(hops, kx, ky, mus)
+    >>> get_spectral_weight(0.0, 0.05, E)
+    (
+        array([[[0.00022555, 0.00022555],
+            [0.00022555, 0.00022555]],
+
+           [[0.00030218, 0.00030218],
+            [0.00030218, 0.00030218]],
+
+           [[0.0004257 , 0.0004257 ],
+            [0.0004257 , 0.0004257 ]],
+
+           [[0.00064389, 0.00064389],
+            [0.00064389, 0.00064389]],
+
+           [[0.00108561, 0.00108561],
+            [0.00108561, 0.00108561]],
+
+           [[0.00220572, 0.00220572],
+            [0.00220572, 0.00220572]],
+
+           [[0.00667902, 0.00667902],
+            [0.00667902, 0.00667902]],
+
+           [[0.0979415 , 0.0979415 ],
+            [0.0979415 , 0.0979415 ]]]),
+        array([[0., 0.],
+           [0., 0.]])
+    )
     """
     dim = E.shape[1]
     diag_filter = np.ones(shape=(dim, dim))
@@ -441,11 +520,16 @@ class Model:
 
 
 if __name__ == "__main__":
-    N = Model(
-        hoppings=(1.0, -0.3, 0.2),
-        broadening=0.05,
-        mus=(-4, 4, 0.05),
-        use_peters=(None, 200)
-    )
-
-    N.plot_hall()
+    # N = Model(
+    #     hoppings=(1.0, -0.3, 0.2),
+    #     broadening=0.05,
+    #     mus=(-4, 4, 0.05),
+    #     use_peters=(None, 200)
+    # )
+    #
+    # N.plot_hall()
+    hops = (1.0, -0.3, 0.2)
+    ks, mus = np.linspace(-np.pi, np.pi, 2), np.linspace(-4, 4, 8)
+    kx, ky = np.meshgrid(ks, ks)
+    E, dEs = get_energies(hops, kx, ky, mus)
+    print(get_spectral_weight(0.0, 0.05, E))

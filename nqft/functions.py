@@ -11,7 +11,6 @@ from rich import print
 from qutip import Qobj
 from colour import Color
 from scipy.constants import pi
-import matplotlib.pyplot as plt
 from matplotlib.colors import LinearSegmentedColormap
 
 
@@ -54,6 +53,13 @@ def delta(j: int, k: int) -> float:
     Returns
     -------
     -: float (0.0 or 1.0)
+
+    Examples
+    --------
+    >>> delta(1, 1)
+    1.0
+    >>> delta(0, 1)
+    0.0
     """
     return 1.0 if j == k else 0.0
 
@@ -94,8 +100,10 @@ def read_fermi_arc(path="./nqft/Data/fermi_arc_data", size=36,
         extensions = ["N24", "N26", "N28", "N30", "N32", "N34", "N36"]
 
     elif size == 64:
+
         if res == 200:
             size_path = "_N64/nk_200/"
+
         elif res == 500:
             size_path = "_N64/nk_500/"
 
@@ -142,20 +150,27 @@ def flatten_fermi_arc(save_path="./nqft/Data/fermi_arc_data_1D", size=36,
     """
     if size == 36:
         save_path += "_N36/"
+
     elif size == 64:
         save_path += "_N64/"
+
         if res == 200:
             save_path += "nk_200/"
+
         elif res == 500:
             save_path += "nk_500/"
 
     arcs_files = read_fermi_arc(size=size, res=res)
+
     for (ext, array) in arcs_files.items():
         flat_array = np.ravel(array)
+
         if type == "text":
             np.savetxt(f'{save_path}Akw_{ext}.csv', flat_array)
+
         elif type == "npy":
             np.save(f'{save_path}Akw_{ext}', flat_array)
+
         else:
             print("No valid type provided. "
                   "Please select between ('npy' and 'text')")
@@ -178,46 +193,19 @@ def find_nearest(array, value) -> int:
     -------
     idx: int
         Index at which user can find the closest value in array.
+
+    Examples
+    --------
+    >>> a = np.array([0, 1, 2, 3, 4, 5, 6])
+    >>> find_nearest(a, 3)
+    3
+    >>> b = np.array([0.0, 1.111, 2.5, 2.6])
+    >>> find_nearest(b, 2.0)
+    2
     """
     array = np.asarray(array)
     idx = (np.abs(array - value)).argmin()
     return idx
-
-
-def plot_hall(files=["./nqft/Data/hall.txt"], x='doping') -> plt.Figure:
-    """Plots hall coefficient as a function of interaction.
-
-    Parameters
-    ----------
-    files: list[str], size=N, default=["./nqft/Data/hall.txt"]
-        Text files to plot.
-
-    x: str, default='doping'
-        Type of x coordinate used to plot (setting up the legend label).
-    """
-    for file in files:
-        if x == 'interaction':
-            data = np.loadtxt(file, delimiter=",")
-            plt.plot(
-                data[:, 0],
-                data[:, 1],
-                '.-',
-                label=f"$n_H(U)$, {file.split('/')[-1]}"
-            )
-        elif x == 'doping':
-            data = np.loadtxt(file, delimiter=",")
-            plt.plot(
-                data[:, 0],
-                data[:, 1],
-                '.-',
-                label=f"$n_H(p)$, {file.split('/')[-1]}"
-            )
-
-    plt.ylim((-2, 2))
-    plt.legend()
-    plt.show()
-
-    return
 
 
 def add_column(file: str, column: np.array, idx: int) -> None:
@@ -268,4 +256,4 @@ def make_cmap(ramp_colors: list) -> LinearSegmentedColormap:
 
 
 if __name__ == "__main__":
-    flatten_fermi_arc(size=64, res=500)
+    pass

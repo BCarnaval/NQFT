@@ -58,14 +58,51 @@ def build_matrix(shape: tuple) -> list:
 
 
 class QcmModel:
-    """Docs
+    """QcmModel instance to make the usage of 'pyqcm' easier.
+
+    Attributes
+    ----------
+    shape: tuple[int], size=2, default=None
+        Shape of the source cluster as: (rows, columns).
+
+    filling: int, default=None
+        Number of electrons inside each cluster.
+
+    interaction: float, default=None
+        Coefficient of interation operator.
+
+    hoppings: tuple[float], default=None
+        Hopping amplitudes coefficients.
+
+    broadening: float, default=None
+        Lorentzian broadening module.
+
+    w: float, default=None
+        Frequency at which we observe the fermi surfaces.
+
+    mu: float, default=None
+        Chemical potential.
+
+    resolution: int, default=None
+        Resolution of phase space (k_x, k_y).
+
+    tiling_shift: bool, default=None
+        Determines if super-vectors are shifted or exactly orthogonals.
+
+    show_spectrum: bool, default=False
+        Determines if 'pyqcm.spectral.mdc' displays spectral function when it
+        computes it.
+
+    overwrite: bool, default=False
+        Determines if the script reuses an already computed model to do further
+        calcultations or if the script computes it from scratch.
     """
 
     def __init__(self, shape: tuple[int], filling: int, interaction: float,
                  hoppings: tuple[float], broadening: float, w: float,
                  mu: float, resolution: int, tiling_shift: bool,
                  show_spectrum=False, overwrite=False) -> None:
-        """Docs
+        """Initialiazing specified attributes.
         """
         # Cluster geometry related attributes
         self.shape = shape
@@ -215,14 +252,14 @@ class QcmModel:
 
     def plot_spectrums(self, peter_key: str, type='contourf',
                        save=False) -> plt.Figure:
-        """Opens spectrums from (2x2, 3x4, 4x4) models and Peters spectrums
+        """Opens spectrums from (2x2, 3x4, 4x3) models and Peters spectrums
         array to compare the plot for given parameters.
 
         Parameters
         ----------
         peter_key: str, default=None
             Determines which of Peter's array to compare.
-            ('N24', 'N28', 'N30', 'N32', 'N36')
+            ('N24', 'N26', 'N28', 'N30', 'N32', 'N34', 'N36')
 
         type: str, default='contourf'
             Spectral plot type (contourf, pcolormesh).
