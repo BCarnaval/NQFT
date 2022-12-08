@@ -125,6 +125,9 @@ class Network:
          [ 0.  0.  0. ... -1.  3.  0.]
          [ 0.  0.  0. ...  0.  0.  4.]]
         """
+        # --------------------------------------------------------------------
+        # TODO: Replace list comprehensions by advanced indexing numpy arrays
+        # --------------------------------------------------------------------
         if model == "Hubbard":
             H1, H2 = 0, 0
             (t,) = kwargs.values()
@@ -154,7 +157,9 @@ class Network:
             H = U * H1 - t * H2
 
         elif model != "Hubbard":
+            # -------------------------
             # Potentially add AIM model
+            # -------------------------
             pass
 
         return H
