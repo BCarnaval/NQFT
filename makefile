@@ -1,5 +1,7 @@
 
 RM=-rm -f
+ROOT=./
+NQFT=./nqft/
 EX_SRC=./nqft/examples/
 GARBAGE={eps,tex,log,aux}
 

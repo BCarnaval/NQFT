@@ -58,7 +58,8 @@ def delta(j: int, k: int) -> float:
     return 1.0 if j == k else 0.0
 
 
-def read_fermi_arc(path="./nqft/Data/fermi_arc_data", size=36) -> dict:
+def read_fermi_arc(path="./nqft/Data/fermi_arc_data", size=36,
+                   res=200) -> dict:
     """Reads Peter's data on spectral weight at Fermi
     level for a given number of sites.
 
@@ -69,6 +70,9 @@ def read_fermi_arc(path="./nqft/Data/fermi_arc_data", size=36) -> dict:
 
     size: int, default=36
         Number of sites of studied model.
+
+    res: int, default=200
+        Resolution of momentum space.
 
     Returns
     -------
@@ -90,7 +94,11 @@ def read_fermi_arc(path="./nqft/Data/fermi_arc_data", size=36) -> dict:
         extensions = ["N24", "N26", "N28", "N30", "N32", "N34", "N36"]
 
     elif size == 64:
-        size_path = "_N64/"
+        if res == 200:
+            size_path = "_N64/nk_200/"
+        elif res == 500:
+            size_path = "_N64/nk_500/"
+
         files = [
             f"{path}{size_path}Akw_N48.npy",
             f"{path}{size_path}Akw_N52.npy",
@@ -109,7 +117,7 @@ def read_fermi_arc(path="./nqft/Data/fermi_arc_data", size=36) -> dict:
 
 
 def flatten_fermi_arc(save_path="./nqft/Data/fermi_arc_data_1D", size=36,
-                      type="text") -> None:
+                      res=200, type="text") -> None:
     """Saves Peter's Fermi arc numpy 2D arrays files as 1D
     arrays numpy files so they can be read in Rust/C.
 
@@ -117,6 +125,12 @@ def flatten_fermi_arc(save_path="./nqft/Data/fermi_arc_data_1D", size=36,
     ----------
     save_path: str, default="./nqft/Data/fermi_arc_data_1D/"
         Path where to save flatten arrays.
+
+    size: int, default=36
+        Number of sites of studied model.
+
+    res: int, default=200
+        Resolution of momentum space.
 
     type: str, default="text"
         Format in which save flattened arrays
@@ -130,8 +144,12 @@ def flatten_fermi_arc(save_path="./nqft/Data/fermi_arc_data_1D", size=36,
         save_path += "_N36/"
     elif size == 64:
         save_path += "_N64/"
+        if res == 200:
+            save_path += "nk_200/"
+        elif res == 500:
+            save_path += "nk_500/"
 
-    arcs_files = read_fermi_arc(size=size)
+    arcs_files = read_fermi_arc(size=size, res=res)
     for (ext, array) in arcs_files.items():
         flat_array = np.ravel(array)
         if type == "text":
@@ -250,6 +268,4 @@ def make_cmap(ramp_colors: list) -> LinearSegmentedColormap:
 
 
 if __name__ == "__main__":
-    file = "./nqft/Data/..."
-    column = np.arange(-4, 4, 0.05)
-    add_column(file=file, column=column, idx=0)
+    flatten_fermi_arc(size=64, res=500)

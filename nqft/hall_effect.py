@@ -55,7 +55,7 @@ def get_energies(hops: tuple, kx: np.ndarray, ky: np.ndarray,
     b = -2 * tp * (cos(kx + ky) + cos(kx - ky))
     c = -2 * tpp * (cos(2 * kx) + cos(2 * ky))
 
-    E = (a + b + c)[..., None] - mus
+    E = ((a + b + c)[..., None] - mus).T
 
     dEs = {
         'dE_dx': None,
@@ -136,7 +136,7 @@ def get_spectral_weight(omega: float, eta: float, E: np.ndarray,
 
     A = -1 / pi * (1 / (omega + eta * 1j - E))
 
-    return diag_filter[..., None] * A.imag, diag_line
+    return diag_filter[None, ...] * A.imag, diag_line
 
 
 class Model:
@@ -172,34 +172,43 @@ class Model:
     """
 
     def __init__(self, hoppings: tuple[float], broadening: float, omega=0.0,
-                 mus=(-4, 4, 0.02), resolution=600, use_peters=None,
+                 mus=(-4, 4, 0.02), resolution=600, use_peters=(None, 200),
                  use_filter=False) -> None:
         """Initializing specified attributes.
         """
         self.w = omega
         self.use_peters = use_peters
+        peter_sites, peter_dim = use_peters
 
-        if use_peters:
-            self.norm = 1 / 200**2
+        if peter_sites:
             self.hops = (1.0, -0.3, 0.2)
 
-            if self.use_peters == 36:
+            if peter_sites == 36:
                 self.eta = 0.1
+                self.norm = 1 / 200**2
                 self.mus = np.array([-1.3, -1.3, -1.0, -0.75, -0.4, -0.4, 0.0])
 
-            elif self.use_peters == 64:
-                self.eta = 0.05
+            elif peter_sites == 64:
+
                 self.mus = np.array([-1.3, -0.8, -0.55, -0.1, 0.0])
 
-            k_s = linspace(-pi, pi, 200)
+                if peter_dim == 200:
+                    self.eta = 0.05
+                    self.norm = 1 / 200**2
+
+                elif peter_dim == 500:
+                    self.eta = 0.1
+                    self.norm = 1 / 500**2
+
+            k_s = linspace(-pi, pi, peter_dim)
             self.k_x, self.k_y = meshgrid(k_s, k_s)
 
             self.E, self.dEs = get_energies(
                 hops=hoppings, kx=self.k_x, ky=self.k_y, mus=self.mus)
 
             self.A = np.array(
-                [array for array in read_fermi_arc(size=use_peters).values()]
-            ).T
+                [array for array in read_fermi_arc(size=peter_sites,
+                                                   res=peter_dim).values()]).T
 
         else:
             self.hops = hoppings
@@ -249,7 +258,7 @@ class Model:
 
         # Spectral weight for a given mu
         idx = find_nearest(self.mus, mu)
-        spectral_mu = self.A[:, :, idx]
+        spectral_mu = self.A[idx, :, :]
 
         # Fig title
         title = "$\\mu = {:.2f}$".format(mu)
@@ -267,9 +276,10 @@ class Model:
         )
         fig.colorbar(spectral)
 
-        peters_spectrum = read_fermi_arc(size=size)[key]
+        dim = self.use_peters[1]
+        peters_spectrum = read_fermi_arc(size=size, res=dim)[key]
         peters_title = "Peter's model: {}".format(key)
-        k_x, k_y = meshgrid(linspace(-pi, pi, 200), linspace(-pi, pi, 200))
+        k_x, k_y = meshgrid(linspace(-pi, pi, dim), linspace(-pi, pi, dim))
 
         axes[1].set_title(peters_title)
         # Plot one of Peter's spectral weight
@@ -337,8 +347,8 @@ class Model:
         elif variable == "y":
             dE = self.dEs['dE_dy']
 
-        sigma_ii = (dE**2)[..., None] * self.A**2
-        conductivity = -1 * sigma_ii.sum(axis=1).sum(axis=0)
+        sigma_ii = (dE**2)[None, ...] * self.A**2
+        conductivity = -1 * sigma_ii.sum(axis=1).sum(axis=1)
 
         return conductivity
 
@@ -355,8 +365,8 @@ class Model:
         c2 = self.dEs['dE_dx']**2 * self.dEs['ddE_dyy']
         c3 = self.dEs['dE_dy']**2 * self.dEs['ddE_dxx']
 
-        sigma_ij = (c1 + c2 + c3)[..., None] * self.A**3
-        conductivity = -1 * sigma_ij.sum(axis=1).sum(axis=0)
+        sigma_ij = (c1 + c2 + c3)[None, ...] * self.A**3
+        conductivity = -1 * sigma_ij.sum(axis=1).sum(axis=1)
 
         return conductivity
 
@@ -371,7 +381,7 @@ class Model:
         """
         beta = 100
         fermi_dirac = 2.0 / (1.0 + exp(beta * self.E.astype("float128")))
-        density = self.norm * fermi_dirac.sum(axis=1).sum(axis=0)
+        density = self.norm * fermi_dirac.sum(axis=1).sum(axis=1)
 
         return density
 
@@ -401,14 +411,14 @@ class Model:
         """
         _, ax = plt.subplots()
 
-        if self.use_peters:
-            if self.use_peters == 36:
+        if self.use_peters[0]:
+            if self.use_peters[0] == 36:
                 ax.set_ylim([0, 2])
                 doping = 1 - np.array(
                     [0.66666666666, 0.72222222222, 0.77777777777,
                      0.83333333333, 0.88888888888, 0.94444444444, 1.0]
                 )
-            elif self.use_peters == 64:
+            elif self.use_peters[0] == 64:
                 ax.set_ylim([0, 1.5])
                 doping = 1 - np.array([0.75, 0.8125, 0.875, 0.9375, 1.0])
 
@@ -431,7 +441,7 @@ if __name__ == "__main__":
         hoppings=(1.0, -0.3, 0.2),
         broadening=0.05,
         mus=(-4, 4, 0.05),
-        use_peters=None,
+        use_peters=(None, 200),
         use_filter=False
     )
 
