@@ -158,12 +158,13 @@ class Model:
         Chemical potential interval values and the interval between each
         element of an hypothetical array.
 
-    resolution: int, default=4
+    resolution: int, default=600
         Resolution of phase space (k_x, k_y).
 
     use_peters: int, default=None
-        Determines if model's based on Peter R. spectral functions
-        (fermi arcs).
+        Determines if model's based on Peter R. spectral functions. User must
+        choose between (None, 36, 64) where 36, 64 represent the number of
+        sites of studied model.
 
     use_filter: bool, default=False
         Determines if spectral weights will be filtered using diamond shape
@@ -173,7 +174,7 @@ class Model:
     def __init__(self, hoppings: tuple[float], broadening: float, omega=0.0,
                  mus=(-4, 4, 0.02), resolution=600, use_peters=None,
                  use_filter=False) -> None:
-        """Docs
+        """Initializing specified attributes.
         """
         self.w = omega
         self.use_peters = use_peters
@@ -218,12 +219,27 @@ class Model:
         return
 
     def plot_spectral_weight(self, mu: float, size=36, key=None) -> plt.Figure:
-        """Ouputs the spectral weight as a 2D numpy array.
+        """Ouputs a matplotlib figure containing 3 subplots. Left one
+        represents the spectral function of non-interacting model. Center one
+        the spectrum comming from Peter's article. Right one the superposition
+        of the firsts.
+
+        Parameters
+        ----------
+        mu: float, default=None
+            Chemical potential at which we observe spectral function.
+
+        size: int, default=36
+            Size of Peter's model used to compare with non-interacting model.
+
+        key: str, default=None
+            Key of the dictionnary containing Peter's spectrums. For example,
+            the 64 sites model has ('N48', 'N52', 'N56', 'N60' and 'N64').
 
         Returns
         -------
         -: plt.figure
-            2D graph of spectral weight.
+            2D graphs of spectral weights.
         """
         # Figure settings
         fig, axes = plt.subplots(ncols=3, tight_layout=True, figsize=(10, 3))
@@ -309,11 +325,11 @@ class Model:
         Parameters
         ----------
         variable: str, default=None
-            Axis on which compute conductivity.
+            Axis on which compute conductivity. (ex: 'x' or 'y')
 
         Returns
         -------
-        conductivity: float
+        conductivity: np.array, size=M
         """
         if variable == "x":
             dE = self.dEs['dE_dx']
@@ -333,7 +349,7 @@ class Model:
 
         Returns
         -------
-        conductivity: float
+        conductivity: np.array, size=M
         """
         c1 = -2 * self.dEs['dE_dx'] * self.dEs['dE_dy'] * self.dEs['ddE_dxdy']
         c2 = self.dEs['dE_dx']**2 * self.dEs['ddE_dyy']
@@ -377,6 +393,11 @@ class Model:
     def plot_hall(self) -> plt.Figure:
         """Outputs a plot of the Hall coefficient as a
         function of doping (1 - density).
+
+        Returns
+        -------
+        -: plt.Figure
+            Graph of Hall number as a function of hole doping.
         """
         _, ax = plt.subplots()
 
