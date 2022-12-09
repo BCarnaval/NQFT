@@ -28,6 +28,7 @@
   - [Poetry (optionnal)](#poetry-optionnal)
   - [Project dependencies](#project-dependencies)
   - [pyqcm](#pyqcm)
+- [Documentation](#documentation)
 
 ## Requirements
 
@@ -66,3 +67,19 @@ should do the work! However, you must keep in mind that it's harder to stay up t
 > - <cite> David Sénéchal </cite>
 
 This library is the numeric and algorithmic core of this repository. It has been written by the unswerving hands of [David Sénéchal](https://www.physique.usherbrooke.ca/pages/senechal), teacher at Université de Sherbrooke since 1992.
+
+## Documentation
+
+To access documentation about the Python functions used in this repository, you can use the `makefile` by calling
+
+```shell
+make pdf
+```
+
+This command will generate a .pdf containing `./NQFT/nqft` submodules documentation whereas the command
+
+```shell
+make html
+```
+
+generates an html page containing the same documentation but with a slightly different format.
