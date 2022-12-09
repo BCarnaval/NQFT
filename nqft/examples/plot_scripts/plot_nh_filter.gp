@@ -1,6 +1,6 @@
 # Global settings
 set terminal epslatex standalone
-set output 'nqft/examples/n_h_filter.tex'
+set output 'nqft/examples/figures/n_h_filter.tex'
 
 # Plot style
 set yr [-2:2]
@@ -34,7 +34,7 @@ plot './nqft/Data/data_filter/filtered.txt' u 1:2 w lp lt 1 pt 6 ps 1 lw 2 lc "#
 
 unset output
 
-system("pdflatex -output-directory='./nqft/examples/' './nqft/examples/n_h_filter.tex'")
+system("pdflatex -output-directory='./nqft/examples/figures/' './nqft/examples/figures/n_h_filter.tex'")
 system("make clean")
-system("open ./nqft/examples/n_h_filter.pdf")
+system("open ./nqft/examples/figures/n_h_filter.pdf")
 system("clear")

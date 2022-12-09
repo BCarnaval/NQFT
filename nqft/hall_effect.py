@@ -242,10 +242,14 @@ class Model:
                 self.eta = 0.1
                 self.norm = 1 / 200**2
                 self.mus = np.array([-1.3, -1.3, -1.0, -0.75, -0.4, -0.4, 0.0])
+                self.peter_density = np.array(
+                    [0.6666, 0.7222, 0.7777, 0.8333, 0.8888, 0.9444, 1.0])
 
             elif peter_sites == 64:
 
                 self.mus = np.array([-1.3, -0.8, -0.55, -0.1, 0.0])
+                self.peter_density = np.array(
+                        [0.75, 0.8125, 0.875, 0.9375, 1.0])
 
                 if peter_dim == 200:
                     self.eta = 0.05
@@ -454,9 +458,14 @@ class Model:
 
         return n_H
 
-    def plot_hall(self) -> plt.Figure:
+    def plot_hall(self, save_path=None) -> plt.Figure:
         """Outputs a plot of the Hall coefficient as a
         function of doping (1 - density).
+
+        Parameters
+        ----------
+        save_path: str, default=None
+            Determines the path in which save n_H(p) as a text file.
 
         Returns
         -------
@@ -466,21 +475,23 @@ class Model:
         _, ax = plt.subplots()
 
         if self.use_peters[0]:
-
-            if self.use_peters[0] == 36:
-                ax.set_ylim([0, 2])
-                doping = 1 - np.array(
-                    [0.6666, 0.7222, 0.7777, 0.8333, 0.8888, 0.9444, 1.0])
-
-            elif self.use_peters[0] == 64:
-                ax.set_ylim([0, 1.5])
-                doping = 1 - np.array([0.75, 0.8125, 0.875, 0.9375, 1.0])
+            doping = 1 - self.peter_density
 
         else:
             doping = 1 - self.get_density()
             ax.set_ylim([-2, 2])
 
         hall_coeffs = self.get_hall_nb()
+
+        if save_path:
+            np.savetxt(
+                    fname=save_path,
+                    X=np.transpose([doping, hall_coeffs]),
+                    delimiter=' ',
+                    header='doping hall_coeff')
+        else:
+            pass
+
         ax.plot(doping, hall_coeffs, ".-", label="$n_H(p)$")
         ax.set_xlabel("$p$")
         ax.set_ylabel("$n_H$")
@@ -495,7 +506,7 @@ if __name__ == "__main__":
         hoppings=(1.0, -0.3, 0.2),
         broadening=0.05,
         mus=(-4, 4, 0.05),
-        use_peters=(64, 500)
+        use_peters=(36, 200)
     )
 
     N.plot_hall()

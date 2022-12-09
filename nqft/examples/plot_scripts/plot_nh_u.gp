@@ -1,6 +1,6 @@
 # Global settings
 set terminal epslatex standalone
-set output 'nqft/examples/n_h_qcm_u.tex'
+set output 'nqft/examples/figures/n_h_qcm_u.tex'
 
 # Plot style
 set yr [-2:2]
@@ -37,7 +37,7 @@ plot './nqft/Data/hall_2x2/n_h_2x2_n4_U001_eta01.txt' u 1:2 w lp ls 1 t '2x2, 0.
 
 unset output
 
-system("pdflatex -output-directory='./nqft/examples/' './nqft/examples/n_h_qcm_u.tex'")
+system("pdflatex -output-directory='./nqft/examples/figures/' './nqft/examples/figures/n_h_qcm_u.tex'")
 system("make clean")
-system("open ./nqft/examples/n_h_qcm_u.pdf")
+system("open ./nqft/examples/figures/n_h_qcm_u.pdf")
 system("clear")

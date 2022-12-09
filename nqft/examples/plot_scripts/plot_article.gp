@@ -1,6 +1,6 @@
 # Global settings
 set terminal epslatex standalone
-set output 'nqft/examples/article.tex'
+set output 'nqft/examples/figures/article.tex'
 
 # Plot style
 set yr [-2:2]
@@ -22,14 +22,14 @@ set style function lines
 set xzeroaxis lt 1 lw 1 lc "#000000"
 set yzeroaxis lt 1 lw 1 lc "#000000"
 
-plot './nqft/Data/n_h_1.txt' u 1:2 w lp ls 3 t '$(0.0, 0.0)t$', \
-     './nqft/Data/n_h_2.txt' u 1:2 w lp ls 4 t '$(-0.3, 0.0)t$', \
-     './nqft/Data/n_h_3.txt' u 1:2 w lp ls 5 t '$(-0.3, 0.2)t$', \
+plot './nqft/Data/data_article/nh_t.txt' u 1:2 w lp ls 3 t '$(0.0, 0.0)t$', \
+     './nqft/Data/data_article/nh_t_tp.txt' u 1:2 w lp ls 4 t '$(-0.3, 0.0)t$', \
+     './nqft/Data/data_article/nh_t_tp_tpp.txt' u 1:2 w lp ls 5 t '$(-0.3, 0.2)t$', \
 
 
 unset output
 
-system("pdflatex -output-directory='./nqft/examples/' './nqft/examples/article.tex'")
+system("pdflatex -output-directory='./nqft/examples/figures/' './nqft/examples/figures/article.tex'")
 system("make clean")
-system("open ./nqft/examples/article.pdf")
+system("open ./nqft/examples/figures/article.pdf")
 system("clear")

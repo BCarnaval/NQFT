@@ -2,7 +2,7 @@
 RM=-rm -f
 ROOT=./
 NQFT=./nqft/
-EX_SRC=./nqft/examples/
+EX_SRC=./nqft/examples/figures/
 GARBAGE={eps,tex,log,aux}
 
 .PHONY: all plot clean
