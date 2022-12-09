@@ -82,4 +82,8 @@ This command will generate a .pdf containing `./NQFT/nqft` submodules documentat
 make html
 ```
 
-generates an html page containing the same documentation but with a slightly different format.
+generates an html page containing the same documentation but with a slightly different format such as
+
+<div align="center">
+  <img width="380" height="280" src="./figs/html_docs.png">
+</div>
