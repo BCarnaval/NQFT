@@ -222,6 +222,8 @@ class Model:
     use_filter: bool, default=False
         Determines if spectral weights will be filtered using diamond shape
         filter to create artificial Fermi arcs.
+
+        (Note: Can only be used when use_peters[0] is None)
     """
 
     def __init__(self, hoppings: tuple[float], broadening: float, omega=0.0,
@@ -261,7 +263,7 @@ class Model:
 
             self.A = np.array(
                 [array for array in read_fermi_arc(size=peter_sites,
-                                                   res=peter_dim).values()]).T
+                                                   res=peter_dim).values()])
 
         else:
             self.hops = hoppings
@@ -318,7 +320,6 @@ class Model:
         axes[0].set_title(title)
 
         # Plot spectral weight
-
         axes[0].contour(self.k_x, self.k_y, self.diamond, linewidths=0.6)
         spectral = axes[0].contourf(
             self.k_x,
@@ -332,9 +333,9 @@ class Model:
         dim = self.use_peters[1]
         peters_spectrum = read_fermi_arc(size=size, res=dim)[key]
         peters_title = "Peter's model: {}".format(key)
+        axes[1].set_title(peters_title)
         k_x, k_y = meshgrid(linspace(-pi, pi, dim), linspace(-pi, pi, dim))
 
-        axes[1].set_title(peters_title)
         # Plot one of Peter's spectral weight
         axes[1].contour(self.k_x, self.k_y, self.diamond, linewidths=0.6)
         spectral_peter = axes[1].contourf(
@@ -346,6 +347,7 @@ class Model:
         )
         fig.colorbar(spectral_peter)
 
+        # Plot the superposition of the firsts
         axes[2].contour(self.k_x, self.k_y, self.diamond, linewidths=0.6)
         spectral = axes[2].contourf(
             self.k_x,
@@ -375,7 +377,6 @@ class Model:
             axes[idx].set_xticks(ticks=[min, 0, max], labels=axes_labels)
             axes[idx].set_yticks(ticks=[min, 0, max], labels=axes_labels)
 
-        # Show figure's plot
         plt.show()
 
         return
@@ -490,16 +491,11 @@ class Model:
 
 
 if __name__ == "__main__":
-    # N = Model(
-    #     hoppings=(1.0, -0.3, 0.2),
-    #     broadening=0.05,
-    #     mus=(-4, 4, 0.05),
-    #     use_peters=(None, 200)
-    # )
-    #
-    # N.plot_hall()
-    hops = (1.0, -0.3, 0.2)
-    ks, mus = np.linspace(-np.pi, np.pi, 2), np.linspace(-4, 4, 4)
-    kx, ky = np.meshgrid(ks, ks)
-    E, dEs = get_energies(hops, kx, ky, mus)
-    print(get_spectral_weight(0.0, 0.05, E))
+    N = Model(
+        hoppings=(1.0, -0.3, 0.2),
+        broadening=0.05,
+        mus=(-4, 4, 0.05),
+        use_peters=(64, 500)
+    )
+
+    N.plot_hall()
