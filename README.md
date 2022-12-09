@@ -85,6 +85,6 @@ make html
 generates an html page containing the same documentation but with a slightly different format such as
 
 <div align="center">
-  <img width="380" height="260" src="./figs/pdf_docs.png">
-  <img width="420" height="260" src="./figs/html_docs.png">
+  <img width="340" height="200" src="./figs/pdf_docs.png">
+  <img width="340" height="200" src="./figs/html_docs.png">
 </div>
