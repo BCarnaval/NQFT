@@ -12,7 +12,7 @@ np.set_printoptions(linewidth=300)
 
 
 @timeit
-def build_h(shape: tuple[int], hops: np.array) -> np.ndarray:
+def build_h(shape: tuple, hops: np.array) -> np.ndarray:
     """Docs
     """
     t, tp, tpp = hops
