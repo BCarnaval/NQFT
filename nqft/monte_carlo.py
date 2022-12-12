@@ -2,10 +2,17 @@
 """
 
 import numpy as np
+from numpy.linalg import eigh
+from numpy.random import normal
 from scipy.signal import convolve2d
 
+from nqft.functions import timeit
 
-def build_h(shape: tuple[int], mu: float, hops: np.array) -> np.ndarray:
+np.set_printoptions(linewidth=300)
+
+
+@timeit
+def build_h(shape: tuple[int], hops: np.array) -> np.ndarray:
     """Docs
     """
     t, tp, tpp = hops
@@ -15,31 +22,48 @@ def build_h(shape: tuple[int], mu: float, hops: np.array) -> np.ndarray:
     t_ij_kernel = np.array([
         [0, 0, tpp, 0, 0],
         [0, tp, t, tp, 0],
-        [tpp, t, mu, t, tpp],
+        [tpp, t, 0, t, tpp],
         [0, tp, t, tp, 0],
         [0, 0, tpp, 0, 0]
     ])
 
-    column = 0
+    colmn = 0
     for coords in np.ndindex(shape):
         i, j = coords
         cluster[i, j] = 1.0
 
-        h[:, column] = convolve2d(
+        h[:, colmn] = convolve2d(
             cluster, t_ij_kernel, mode='same', boundary='wrap').ravel()
 
         cluster[i, j] = 0.0
-        column += 1
+        colmn += 1
 
     return h
 
 
+@timeit
+# ------------------
+# Return type needed
+# ------------------
+def monte_carlo(h: np.ndarray, mu: float, std: float):
+    """Docs
+    """
+    length = h.shape[0]
+    mus = normal(loc=mu, scale=std, size=(length,))
+    epsilon_ij = np.diag(v=mus)
+    h += epsilon_ij
+
+    vals, vects = eigh(h)
+
+    return vals, vects
+
+
 if __name__ == "__main__":
     # Variables & Parameters
-    shape = (3, 3)
+    shape = (80, 80)
     sites = shape[0] * shape[1]
-    hoppings = np.array([1, 2, 3])
+    hoppings = np.array([1, -0.3, 0.2])
 
     # Building Hamiltonian
-    H = build_h(shape=shape, mu=0.0, hops=hoppings)
-    print(H)
+    H = build_h(shape=shape, hops=hoppings)
+    potentials = monte_carlo(h=H, mu=0.0, std=1.0)

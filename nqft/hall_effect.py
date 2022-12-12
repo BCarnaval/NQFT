@@ -2,27 +2,13 @@
 spin-density wave.
 """
 
-import time
 import numpy as np
 from rich import print
-from functools import wraps
 from scipy.constants import pi
 import matplotlib.pyplot as plt
 from numpy import arange, meshgrid, sin, cos, exp, linspace
 
-from nqft.functions import read_fermi_arc, find_nearest, make_cmap
-
-
-def timeit(func):
-    @wraps(func)
-    def timeit_wrapper(*args, **kwargs):
-        start_time = time.perf_counter()
-        result = func(*args, **kwargs)
-        end_time = time.perf_counter()
-        total_time = end_time - start_time
-        print(f"Function {func.__name__} took {total_time:.2f} seconds.")
-        return result
-    return timeit_wrapper
+from nqft.functions import read_fermi_arc, find_nearest, make_cmap, timeit
 
 
 @timeit
@@ -249,7 +235,7 @@ class Model:
 
                 self.mus = np.array([-1.3, -0.8, -0.55, -0.1, 0.0])
                 self.peter_density = np.array(
-                        [0.75, 0.8125, 0.875, 0.9375, 1.0])
+                    [0.75, 0.8125, 0.875, 0.9375, 1.0])
 
                 if peter_dim == 200:
                     self.eta = 0.05
@@ -485,10 +471,10 @@ class Model:
 
         if save_path:
             np.savetxt(
-                    fname=save_path,
-                    X=np.transpose([doping, hall_coeffs]),
-                    delimiter=' ',
-                    header='doping hall_coeff')
+                fname=save_path,
+                X=np.transpose([doping, hall_coeffs]),
+                delimiter=' ',
+                header='doping hall_coeff')
         else:
             pass
 
