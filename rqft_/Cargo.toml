@@ -1,0 +1,16 @@
+[package]
+name = "rqft"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+ndarray = "0.15.6"
+csv = "1.1.6"
+serde = { version = "1.0.145", features = ["derive"] }
+num = "0.4.0"
+colored = "2.0.0"
+indicatif = "0.17.1"
+physical_constants = "0.5.0"
+glob = "0.3.0"
