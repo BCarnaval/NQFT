@@ -10,17 +10,29 @@ from scipy.signal import convolve2d
 
 from nqft.functions import timeit
 
-np.set_printoptions(linewidth=300)
-
 
 @timeit
-def build_h(shape: tuple, hops: np.array) -> np.ndarray:
-    """Docs
+def build_h(shape: tuple, hops: np.array = (0.0, 0.0, 0.0)) -> np.ndarray:
+    """Generates the hamiltonian of a periodic square cluster using circular
+    boundary conditions for hopping amplitudes.
+
+    Parameters
+    ----------
+    shape: tuple[int], size=2, default=None
+        Shape of source clusters.
+
+    hops: np.array[float], size=3, default=(0.0, 0.0, 0.0)
+        Hopping amplitudes of the system.
+
+    Returns
+    -------
+    h: np.ndarray[float], shape=(shape[0]*shape[1], shape[0]*shape[1])
+        Hamiltonian of the system.
     """
     t, tp, tpp = hops
-    sites = shape[0] * shape[1]
+    n_sites = shape[0] * shape[1]
     cluster = np.zeros(shape=shape)
-    h = np.zeros(shape=(sites, sites))
+    h = np.zeros(shape=(n_sites, n_sites))
     t_ij_kernel = np.array([
         [0, 0, tpp, 0, 0],
         [0, tp, t, tp, 0],
@@ -68,15 +80,15 @@ def monte_carlo(h: np.ndarray, shape: tuple, omega: float, eta: float,
     G_ij = inv(z - h)
     n_sites = shape[0] * shape[1]
     G_kw = np.zeros(shape=shape, dtype=np.complex128)
-    for i in range(n_sites):
-        r_i = r(i, shape)
-        for j in range(n_sites):
-            r_j = r(j, shape)
-            delta_r = r_i - r_j
-            for k in range(n_sites):
-                k_vec = r(k, shape)
-                G_kw[k_vec[0], k_vec[1]
-                     ] += np.exp(1j * np.dot(k_vec, delta_r)) * G_ij[i, j]
+    # for i in range(n_sites):
+    #     r_i = r(i, shape)
+    #     for j in range(n_sites):
+    #         r_j = r(j, shape)
+    #         delta_r = r_i - r_j
+    #         for k in range(n_sites):
+    #             k_vec = r(k, shape)
+    #             G_kw[k_vec[0], k_vec[1]
+    #                  ] += np.exp(1j * np.dot(k_vec, delta_r)) * G_ij[i, j]
 
     A_kw = -1 / np.pi * G_kw.imag
 
@@ -86,14 +98,12 @@ def monte_carlo(h: np.ndarray, shape: tuple, omega: float, eta: float,
 if __name__ == "__main__":
     # Variables & Parameters
     shape = (10, 10)
-    hoppings = np.array([1, -0.3, 0.2])
+    hoppings = np.array([1.0, -0.3, 0.2])
 
     # Building Hamiltonian
     H = build_h(shape=shape, hops=hoppings)
-    spectrum = monte_carlo(h=H, shape=shape, omega=0.0,
-                           eta=0.1, mu=0.0, std=1.0)
+    spectrum = monte_carlo(h=H, shape=shape, omega=0.0, eta=0.1, mu=0.0,
+                           std=1.0)
 
-    k_s = np.linspace(-np.pi, np.pi, shape[0])
-    k_x, k_y = np.meshgrid(k_s, k_s)
     plt.contourf(spectrum)
     plt.show()
